@@ -1,0 +1,12 @@
+# Parte visual / IO (permitidas pelo enunciado)
+pandas
+matplotlib
+plotly
+streamlit
+pyvis
+
+# Testes
+pytest
+
+# ATENCAO: networkx so pode ser importado DENTRO de tests/, como oraculo.
+networkx
