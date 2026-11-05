@@ -1,12 +1,50 @@
-"""
-io.py  -  Leitura e validacao dos mapas .txt e do dataset da Parte 2.
+def ler_mapa(mapa):
+    caracteres = []
+    linhas = []
 
-PACOTE P1. NAO PODE SER ESCRITO POR IA (ver DECLARACAO_IA).
+    with open(mapa) as arquivo:
+        for linha in arquivo:
+                 
+                if not linha.startswith(";"):
+                        linhas.append(linha.strip())
+               
+        
+       
+        for i in linhas:
+                caracteres.append(list(i))
+                     
 
-Responsabilidades deste arquivo:
-  - ler um arquivo de mapa, ignorando linhas que comecam com ';'
-  - validar: grade retangular, exatamente um 'S', pelo menos um 'G',
-    nenhum simbolo desconhecido -> erro com mensagem clara
-  - expor a tabela de custos dos simbolos (. 1 | , 3 | ~ 5 | + -4 depois 1 | * -2)
-  - ler o dataset da Parte 2 (arestas origem,destino,peso)
-"""
+        return caracteres
+
+
+def obter_custo(caract):
+      CUSTOS = {
+                ",":3,
+                "~":5,
+                "+":-4,
+                "*":-2
+        }
+
+      if caract in CUSTOS:
+            return CUSTOS[caract]
+      else :
+            return 1
+
+      
+      
+
+      
+
+      
+
+
+
+print(ler_mapa("data/mapas/m01_terreno.txt"))            
+    
+    
+
+
+
+
+
+    
