@@ -31,10 +31,22 @@ def obter_custo(caract):
       else :
             return 1
 
-      
-      
 
-      
+def achar_inicio(grade):
+      for l , linha in enumerate(grade):
+            for c , valor in enumerate(linha):
+                  if valor == "S":
+                        return (l , c)
+
+
+def achar_saida(grade):
+      saidas = []
+      for l , linha in enumerate(grade):
+                  for c , valor in enumerate(linha):
+                         if valor =="G":
+                                saidas.append((l , c))                        
+
+      return saidas
 
       
 
