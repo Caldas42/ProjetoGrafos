@@ -1,3 +1,11 @@
+CUSTOS = {
+                ",":3,
+                "~":5,
+                "+":-4,
+                "*":-2
+        }
+
+
 def ler_mapa(mapa):
     caracteres = []
     linhas = []
@@ -18,13 +26,6 @@ def ler_mapa(mapa):
 
 
 def obter_custo(caract):
-      CUSTOS = {
-                ",":3,
-                "~":5,
-                "+":-4,
-                "*":-2
-        }
-
       if caract in CUSTOS:
             return CUSTOS[caract]
       else :
@@ -39,7 +40,7 @@ def obter_custo(caract):
 
 
 
-print(ler_mapa("data/mapas/m01_terreno.txt"))            
+          
     
     
 
