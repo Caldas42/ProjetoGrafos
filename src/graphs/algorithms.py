@@ -45,3 +45,63 @@ def dfs(grafo, v0):
 #print("estado:", estado)
 #print("pai:   ", p)
 #print("t:     ", t)
+
+
+INF = float("inf")
+
+def bellman_ford(grafo, v0):
+    d = {}
+    p = {}
+    for v in grafo:
+        d[v] = INF
+        p[v] = None
+    d[v0] = 0
+
+    n = len(grafo)
+    for _ in range(n - 1):
+        mudou = False
+        for vi in grafo:
+            for vj, peso in grafo[vi]:
+                if d[vi] != INF and d[vi] + peso < d[vj]:
+                    d[vj] = d[vi] + peso
+                    p[vj] = vi
+                    mudou = True
+        if not mudou:
+            break
+
+    x = None
+    for vi in grafo:
+        for vj, peso in grafo[vi]:
+            if d[vi] != INF and d[vi] + peso < d[vj]:
+                p[vj] = vi
+                x = vj
+                break
+        if x is not None:
+            break
+
+    if x is None:
+        return d, p, None
+
+    for _ in range(n):
+        x = p[x]
+    ciclo = [x]
+    y = p[x]
+    while y != x:
+        ciclo.append(y)
+        y = p[y]
+    ciclo.append(x)
+    ciclo.reverse()
+    return d, p, ciclo
+
+
+# grafo = {"A": [("B", 4), ("C", 5)], "B": [("D", 3)], "C": [("B", -2), ("D", 6)], "D": [("E", 2)], "E": []}
+# print(bellman_ford(grafo, "A"))
+
+# grafo = {"A": [("B", 4), ("C", 5)], "B": [("D", 3)], "C": [("B", -2), ("D", 6)], "D": [("E", 2)], "E": []}
+# d, p, ciclo = bellman_ford(grafo, "A")
+# print("distancias:", d)
+# print("pai:       ", p)
+# print("ciclo:     ", ciclo)
+
+# grafo_ciclo = {"A": [("B", 4), ("C", 5)], "B": [("D", 3)], "C": [("B", -2), ("D", 6)], "D": [("E", 2)], "E": [("C", -10)]}
+# print("ciclo negativo:", bellman_ford(grafo_ciclo, "A")[2])
