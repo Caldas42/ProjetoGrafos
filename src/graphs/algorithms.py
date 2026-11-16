@@ -13,6 +13,8 @@ Responsabilidades deste arquivo:
   - permitido usar heapq no Dijkstra. Proibido networkx/igraph fora de tests/.
 """
 
+import heapq
+
 def dfs(grafo, v0):
     NAO_VISITADO = "NAO_VISITADO"
     VISITADO = "VISITADO"
@@ -105,3 +107,27 @@ def bellman_ford(grafo, v0):
 
 # grafo_ciclo = {"A": [("B", 4), ("C", 5)], "B": [("D", 3)], "C": [("B", -2), ("D", 6)], "D": [("E", 2)], "E": [("C", -10)]}
 # print("ciclo negativo:", bellman_ford(grafo_ciclo, "A")[2])
+
+def dijkstra(grafo, origem):
+
+    d = {v: float("inf") for v in grafo}
+    anterior = {v: None for v in grafo}
+    visitado = {v: False for v in grafo}
+
+    d[origem] = 0
+    fila = [(0, origem)]  
+
+    while fila:
+        dist_u, u = heapq.heappop(fila)
+
+        if visitado[u]:
+            continue  
+        visitado[u] = True
+
+        for v, peso in grafo[u]:
+            if d[v] > d[u] + peso:
+                d[v] = d[u] + peso
+                anterior[v] = u
+                heapq.heappush(fila, (d[v], v))
+
+    return d, anterior
