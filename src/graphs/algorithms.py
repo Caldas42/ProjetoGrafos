@@ -14,6 +14,7 @@ Responsabilidades deste arquivo:
 """
 
 import heapq
+from collections import deque
 
 def dfs(grafo, v0):
     NAO_VISITADO = "NAO_VISITADO"
@@ -131,3 +132,23 @@ def dijkstra(grafo, origem):
                 heapq.heappush(fila, (d[v], v))
 
     return d, anterior
+
+def bfs(grafo, inicio):
+    distancias = {}
+    pais = {}
+
+    distancias[inicio] = 0
+    pais[inicio] = None
+
+    fila = deque([inicio])
+
+    while fila:
+        atual = fila.popleft()
+
+        for vizinho, peso in grafo[atual]:
+            if vizinho not in distancias:
+                distancias[vizinho] = distancias[atual] + 1
+                pais[vizinho] = atual
+                fila.append(vizinho)
+
+    return distancias, pais
