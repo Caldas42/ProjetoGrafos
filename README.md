@@ -25,24 +25,42 @@ pip install -r requirements.txt
 ## Como executar
 
 ```bash
-# PARTE 1 (labirintos)
-python -m src.cli --mapa ./data/mapas/m03_tres_chaves.txt --alg BFS          --out ./out/parte1/
-python -m src.cli --mapa ./data/mapas/m03_tres_chaves.txt --alg DIJKSTRA     --out ./out/parte1/
-python -m src.cli --mapa ./data/mapas/m05_bonus.txt       --alg BELLMAN_FORD --out ./out/parte1/
-python -m src.cli --mapa ./data/mapas/m06_fonte.txt       --alg BELLMAN_FORD --fonte consumivel --out ./out/parte1/
-python -m src.cli --mapa ./data/mapas/m04_esteiras.txt    --armadilhas       --out ./out/parte1/
-python -m src.cli --mapa ./data/mapas/m03_tres_chaves.txt --interactive      --out ./out/parte1/
+# metricas do grafo de um mapa
+python -m src.cli --mapa ./data/mapas/m03_tres_chaves.txt
 
-# PARTE 2 (dataset maior)
-python -m src.cli --dataset ./data/dataset_parte2/ --alg DIJKSTRA --source A --target Z --out ./out/parte2/
-python -m src.cli --dataset ./data/dataset_parte2/ --benchmark --out ./out/parte2/
+# os quatro algoritmos
+python -m src.cli --mapa ./data/mapas/m03_tres_chaves.txt --alg BFS
+python -m src.cli --mapa ./data/mapas/m03_tres_chaves.txt --alg DIJKSTRA --caminho
+python -m src.cli --mapa ./data/mapas/m05_bonus.txt       --alg BELLMAN_FORD
+python -m src.cli --mapa ./data/mapas/m03_tres_chaves.txt --alg DFS
+
+# Dijkstra recusa grafo com peso negativo
+python -m src.cli --mapa ./data/mapas/m05_bonus.txt --alg DIJKSTRA
+
+# correcao de regra da fonte: o ciclo negativo do m06 desaparece
+python -m src.cli --mapa ./data/mapas/m06_fonte.txt --alg BELLMAN_FORD
+python -m src.cli --mapa ./data/mapas/m06_fonte.txt --alg BELLMAN_FORD --fonte consumivel
+
+# estados-armadilha e graus
+python -m src.cli --mapa ./data/mapas/m04_esteiras.txt --armadilhas
+python -m src.cli --mapa ./data/mapas/m07_impossivel.txt --armadilhas
+python -m src.cli --mapa ./data/mapas/m08_grande.txt --graus
+
+# visualizacoes
+python -m src.cli --interactive --out ./out/parte1/
+python -m src.cli --figuras     --out ./out/parte1/
+python -m src.viz                                    # html + figuras de uma vez
 ```
 
 ## Testes
 
 ```bash
-pytest
+pytest -q
 ```
+
+Os testes marcados como `skipped` apontam o que ainda falta implementar:
+`classificar_arcos()` na DFS, e o calculo a mao do mapa minimo em
+`tests/test_estados.py`.
 
 ## Estrutura do projeto
 
@@ -101,6 +119,16 @@ custo da casa de **destino**; estados em `G` não têm arcos de saída.
 | P3 | Análises da Parte 1 (métricas, camadas, comparação de modelagens, m05, m06, mapas do grupo) | | |
 | P4 | Parte 2 (dataset, pesos negativos, casos obrigatórios, benchmark, escalabilidade) | | |
 | P5 | Visualização e comunicação (figuras, HTML interativo, AVD, README, PDF) | | |
+
+## Saídas
+
+| arquivo | conteúdo |
+|---|---|
+| `out/parte1/labirinto_interativo.html` | percurso animado, camadas, armadilhas |
+| `out/parte1/percurso_m03.png` · `percurso_m08.png` | caminho sobre o mapa, cor por camada |
+| `out/parte1/camadas_m02.png` | grafo de estados em camadas |
+| `out/parte1/arvore_bfs_m02.png` | árvore BFS com os níveis |
+| `out/parte1/heatmap_m08.png` | multiplicidade das casas |
 
 ## Uso de IA
 
