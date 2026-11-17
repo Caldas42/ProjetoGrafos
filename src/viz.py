@@ -181,329 +181,331 @@ PAGINA = r"""<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Labirinto Interativo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap">
 <style>
   :root {
-    --ground:#EEF0F4; --surface:#FFFFFF; --ink:#16181F; --ink-soft:#424758;
-    --muted:#6B7183; --rule:#D3D7E0; --accent:#2F5FBF; --accent-bg:#E2EAF9;
-    --warn:#A33A3A; --warn-bg:#FAE3E3;
-    --parede:#343846; --chao:#FFFFFF; --chao-b:#D3D7E0;
-    --lama:#C08C4A; --agua:#6FA8D6; --chave:#F2D750; --porta:#B49AD8;
-    --inicio:#67C18A; --saida:#F0A05A; --esteira:#9AA6B8; --bonus:#E5739B; --fonte:#58C3BC;
-    --trilha:#2F5FBF; --armadilha:#A33A3A;
-    --cel:22px;
-    --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
-    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --fundo:#12141a; --palco:#0b0d12; --painel:#1a1d26; --linha:#282c38;
+    --tinta:#e9ebf2; --tinta2:#9aa0b2; --tinta3:#656b7d;
+    --azul:#5598e7; --azul-forte:#86b6ef;
+    --parede:#2e3342; --chao:#e4e9f0; --chao-txt:#aab2c2;
+    --lama:#c08c4a; --agua:#6fa8d6; --chave:#f2d750; --porta:#b49ad8;
+    --inicio:#67c18a; --saida:#f0a05a; --esteira:#8a93a6;
+    --bonus:#e5739b; --fonte:#58c3bc; --alerta:#e08a8a;
+    --m:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --cel:24px;
   }
-  @media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
-    --ground:#101219; --surface:#191C26; --ink:#E8EBF2; --ink-soft:#B6BCCC;
-    --muted:#848BA0; --rule:#2B303E; --accent:#7AA2EE; --accent-bg:#1B2436;
-    --warn:#E08A8A; --warn-bg:#2C1A1A;
-    --parede:#0B0D13; --chao:#272C3A; --chao-b:#363C4D;
-    --trilha:#7AA2EE; --armadilha:#E08A8A;
-  }}
-  :root[data-theme="dark"]{
-    --ground:#101219; --surface:#191C26; --ink:#E8EBF2; --ink-soft:#B6BCCC;
-    --muted:#848BA0; --rule:#2B303E; --accent:#7AA2EE; --accent-bg:#1B2436;
-    --warn:#E08A8A; --warn-bg:#2C1A1A;
-    --parede:#0B0D13; --chao:#272C3A; --chao-b:#363C4D;
-    --trilha:#7AA2EE; --armadilha:#E08A8A;
+  :root[data-theme="light"]{
+    --fundo:#eceef3; --palco:#dfe3ea; --painel:#ffffff; --linha:#ccd1dc;
+    --tinta:#171a21; --tinta2:#5b6173; --tinta3:#878da0;
+    --azul:#2a78d6; --azul-forte:#1c5cab;
+    --parede:#3a3e4a; --chao:#ffffff; --chao-txt:#b9bfcc;
   }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);
-       font-size:15.5px;line-height:1.6;-webkit-font-smoothing:antialiased}
-  .wrap{max-width:74rem;margin:0 auto;padding:2rem 1rem 4rem;display:flex;flex-direction:column;gap:1.5rem}
+  html,body{margin:0;background:var(--fundo);color:var(--tinta);font-family:var(--m)}
+  body{font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  button,select,input{font-family:inherit;color:inherit}
 
-  header{display:flex;flex-direction:column;gap:0.3rem}
-  h1{font-family:var(--mono);font-size:1.6rem;font-weight:600;letter-spacing:-0.02em;margin:0}
-  .sub{color:var(--muted);font-size:0.9rem;margin:0}
+  .topo{display:flex;flex-wrap:wrap;align-items:center;gap:1rem;
+        padding:.85rem 1.25rem;border-bottom:1px solid var(--linha);background:var(--painel)}
+  .marca{font-weight:700;letter-spacing:-.02em;font-size:.95rem;margin-right:auto}
+  .marca b{color:var(--azul)}
+  .campo{display:flex;align-items:center;gap:.45rem;font-size:.78rem;color:var(--tinta3)}
+  select{background:var(--fundo);border:1px solid var(--linha);border-radius:5px;
+         padding:.3rem .5rem;font-size:.82rem;font-weight:500}
+  select:hover{border-color:var(--azul)}
+  .tema{background:none;border:1px solid var(--linha);border-radius:5px;
+        padding:.3rem .55rem;cursor:pointer;font-size:.78rem;color:var(--tinta2)}
+  .tema:hover{border-color:var(--azul);color:var(--tinta)}
 
-  .painel{display:flex;flex-wrap:wrap;gap:0.9rem 1.4rem;align-items:flex-end;
-          background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:1rem 1.1rem}
-  .campo{display:flex;flex-direction:column;gap:0.3rem}
-  .campo label{font-family:var(--mono);font-size:0.68rem;letter-spacing:0.1em;
-               text-transform:uppercase;color:var(--muted)}
-  select,button{font-family:inherit;font-size:0.9rem;color:var(--ink);background:var(--surface);
-                border:1px solid var(--rule);border-radius:6px;padding:0.42rem 0.7rem;cursor:pointer}
-  select:hover,button:hover{border-color:var(--accent)}
-  button.primario{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600;min-width:6.5rem}
-  button:disabled{opacity:0.45;cursor:not-allowed}
-  input[type=range]{width:9rem;accent-color:var(--accent)}
-  .check{display:flex;align-items:center;gap:0.4rem;font-size:0.88rem;color:var(--ink-soft);cursor:pointer}
+  .estado{display:flex;flex-wrap:wrap;align-items:baseline;gap:.5rem 1.6rem;
+          padding:1.1rem 1.25rem .9rem;background:var(--painel);border-bottom:1px solid var(--linha)}
+  .rotulo{font-size:clamp(1.3rem,3.4vw,2.1rem);font-weight:700;letter-spacing:-.03em;
+          color:var(--azul-forte);white-space:nowrap}
+  .leitura{display:flex;flex-wrap:wrap;gap:.3rem 1.4rem;font-size:.8rem;color:var(--tinta3)}
+  .leitura i{font-style:normal;color:var(--tinta);font-weight:500}
 
-  .corpo{display:grid;grid-template-columns:minmax(0,1fr) 17rem;gap:1.2rem;align-items:start}
-  @media (max-width:60rem){.corpo{grid-template-columns:1fr}}
-
-  .palco{background:var(--surface);border:1px solid var(--rule);border-radius:8px;
-         padding:1rem;overflow:auto}
-  .grade{display:inline-grid;gap:1px;background:var(--rule);padding:1px;border-radius:4px}
-  .cel{width:var(--cel,22px);height:var(--cel,22px);display:flex;align-items:center;justify-content:center;
-       font-family:var(--mono);font-size:calc(var(--cel,22px)*0.55);font-weight:600;
-       color:var(--ink);background:var(--chao);position:relative}
+  .palco{background:var(--palco);padding:1.5rem 1rem;display:flex;
+         justify-content:center;gap:1.5rem;overflow:auto;flex-wrap:wrap}
+  .tabuleiro{display:flex;flex-direction:column;gap:.5rem;align-items:center}
+  .tab-rot{font-size:.72rem;color:var(--tinta3);letter-spacing:.04em}
+  .tab-rot b{color:var(--azul);font-weight:500}
+  .grade{display:inline-grid;gap:1px;background:var(--linha);padding:1px;border-radius:3px}
+  .cel{width:var(--cel);height:var(--cel);display:flex;align-items:center;justify-content:center;
+       font-size:calc(var(--cel)*.52);font-weight:500;color:#171a21;background:var(--chao);position:relative}
   .p{background:var(--parede);color:transparent}
-  .o{background:var(--chao);color:var(--chao-b)}
-  .S{background:var(--inicio)} .G{background:var(--saida)}
-  .m{background:var(--lama)} .w{background:var(--agua)}
-  .k{background:var(--chave)} .d{background:var(--porta)}
-  .e{background:var(--esteira)} .b{background:var(--bonus)} .f{background:var(--fonte)}
-  .fora{opacity:0.22}
-  .trilha::after{content:"";position:absolute;inset:18%;border-radius:50%;
-                 background:var(--trilha);opacity:0.5}
-  .armadilha{box-shadow:inset 0 0 0 2px var(--armadilha)}
-  .atual{box-shadow:inset 0 0 0 3px var(--ink);z-index:2}
-  .atual::before{content:"";position:absolute;inset:26%;border-radius:50%;background:var(--ink)}
+  .o{background:var(--chao);color:var(--chao-txt)}
+  .st{background:var(--inicio)} .go{background:var(--saida)}
+  .mu{background:var(--lama)} .ag{background:var(--agua)}
+  .ch{background:var(--chave)} .po{background:var(--porta)}
+  .es{background:var(--esteira)} .bo{background:var(--bonus)} .fo{background:var(--fonte)}
+  .apagada{opacity:.18}
+  .trilha::after{content:"";position:absolute;inset:32%;border-radius:50%;
+                 background:var(--azul);opacity:.42}
+  .presa{box-shadow:inset 0 0 0 2px var(--alerta)}
+  .aqui{box-shadow:inset 0 0 0 3px #171a21,0 0 0 2px var(--azul);z-index:2}
+  .aqui::before{content:"";position:absolute;inset:24%;border-radius:50%;background:#171a21}
 
-  aside{display:flex;flex-direction:column;gap:0.9rem}
-  .caixa{background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:0.9rem 1rem}
-  .caixa h2{font-family:var(--mono);font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;
-            color:var(--muted);margin:0 0 0.6rem}
-  .linha{display:flex;justify-content:space-between;gap:0.8rem;font-size:0.9rem;padding:0.18rem 0}
-  .linha span:first-child{color:var(--muted)}
-  .linha span:last-child{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
-  .rotulo{font-family:var(--mono);font-size:0.95rem;font-weight:600;color:var(--accent);
-          word-break:break-all;padding:0.3rem 0 0.5rem}
-  .aviso{background:var(--warn-bg);color:var(--warn);border-radius:6px;padding:0.6rem 0.8rem;
-         font-size:0.86rem}
-  .legenda{display:flex;flex-wrap:wrap;gap:0.3rem 0.8rem;font-size:0.78rem;color:var(--muted)}
-  .legenda i{width:0.8rem;height:0.8rem;border-radius:2px;display:inline-block;
-             border:1px solid var(--rule);vertical-align:-0.1em;margin-right:0.25rem}
-  .barra{height:4px;background:var(--rule);border-radius:2px;overflow:hidden;margin-top:0.5rem}
-  .barra i{display:block;height:100%;background:var(--accent);width:0%}
+  .transporte{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem 1.1rem;
+              padding:.75rem 1.25rem;background:var(--painel);border-top:1px solid var(--linha);
+              border-bottom:1px solid var(--linha)}
+  .botoes{display:flex;gap:.25rem}
+  .botoes button{background:var(--fundo);border:1px solid var(--linha);color:var(--tinta2);
+                 width:2.1rem;height:2.1rem;border-radius:5px;cursor:pointer;font-size:.8rem;
+                 display:flex;align-items:center;justify-content:center}
+  .botoes button:hover:not(:disabled){border-color:var(--azul);color:var(--tinta)}
+  .botoes button.tocar{width:auto;padding:0 .9rem;background:var(--azul);border-color:var(--azul);
+                       color:#0b0d12;font-weight:700;letter-spacing:-.01em}
+  .botoes button:disabled{opacity:.35;cursor:not-allowed}
+  input[type=range]{accent-color:var(--azul);width:7.5rem;background:none}
+  .marca-passo{font-size:.78rem;color:var(--tinta3);margin-left:auto}
+  .marca-passo b{color:var(--tinta);font-weight:500}
+  .barra{height:3px;background:var(--linha);position:relative}
+  .barra i{display:block;height:100%;background:var(--azul);width:0}
+  .alternar{display:flex;align-items:center;gap:.4rem;font-size:.78rem;
+            color:var(--tinta3);cursor:pointer;user-select:none}
+  .alternar input{accent-color:var(--azul);margin:0}
+
+  .rodape{display:flex;flex-wrap:wrap;gap:.35rem 1.6rem;padding:.8rem 1.25rem;
+          font-size:.76rem;color:var(--tinta3);border-bottom:1px solid var(--linha)}
+  .rodape b{color:var(--tinta);font-weight:500}
+  .aviso{margin:0;padding:.75rem 1.25rem;background:#2a1a1e;color:var(--alerta);font-size:.8rem;
+         border-bottom:1px solid var(--linha)}
+  :root[data-theme="light"] .aviso{background:#fbe8e8}
+  .aviso code{color:var(--tinta2);font-size:.74rem;word-break:break-all}
+
+  .legenda{display:flex;flex-wrap:wrap;gap:.3rem 1rem;padding:.8rem 1.25rem;
+           font-size:.74rem;color:var(--tinta3)}
+  .legenda span{display:inline-flex;align-items:center;gap:.35rem}
+  .sw{width:.8rem;height:.8rem;border-radius:2px;border:1px solid var(--linha)}
+  :focus-visible{outline:2px solid var(--azul);outline-offset:2px}
   @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+  @media (max-width:720px){.rotulo{font-size:1.15rem}.estado{gap:.4rem .9rem}}
 </style>
 
-<div class="wrap">
-  <header>
-    <h1>Labirinto Interativo</h1>
-    <p class="sub">Projeto Final — Teoria dos Grafos 2026.2 · percurso animado sobre o grafo de estados</p>
-  </header>
+<header class="topo">
+  <div class="marca">labirinto <b>interativo</b></div>
+  <label class="campo">mapa <select id="mapa"></select></label>
+  <label class="campo">algoritmo <select id="alg"></select></label>
+  <label class="campo">camada <select id="camada"></select></label>
+  <button class="tema" id="tema">tema</button>
+</header>
 
-  <div class="painel">
-    <div class="campo"><label for="mapa">mapa</label><select id="mapa"></select></div>
-    <div class="campo"><label for="alg">algoritmo</label><select id="alg"></select></div>
-    <div class="campo"><label for="camada">camada</label><select id="camada"></select></div>
-    <div class="campo"><label>&nbsp;</label>
-      <div style="display:flex;gap:0.4rem">
-        <button id="inicio" title="voltar ao inicio">|&#9664;</button>
-        <button id="voltar" title="um passo atras">◀</button>
-        <button id="tocar" class="primario">▶ Tocar</button>
-        <button id="avancar" title="um passo a frente">▶</button>
-        <button id="fim" title="ir para o fim">&#9654;|</button>
-      </div>
-    </div>
-    <div class="campo"><label for="vel">velocidade · <span id="velTxt">2</span> passos/s</label>
-      <input type="range" id="vel" min="1" max="12" value="2"></div>
-    <div class="campo"><label>&nbsp;</label>
-      <label class="check"><input type="checkbox" id="armad"> realçar armadilhas</label></div>
-    <div class="campo"><label>&nbsp;</label>
-      <label class="check"><input type="checkbox" id="trilhaOn" checked> mostrar trilha</label></div>
-    <div class="campo"><label for="zoom">zoom</label>
-      <input type="range" id="zoom" min="10" max="40" value="22"></div>
+<section class="estado">
+  <div class="rotulo" id="rotulo">—</div>
+  <div class="leitura">
+    <span>chaves <i id="chaves">—</i></span>
+    <span>bônus <i id="bonus">—</i></span>
+    <span>custo acumulado <i id="custo">—</i></span>
   </div>
+</section>
 
-  <div class="corpo">
-    <div class="palco"><div class="grade" id="grade"></div></div>
+<div id="aviso"></div>
 
-    <aside>
-      <div class="caixa">
-        <h2>estado atual</h2>
-        <div class="rotulo" id="rotulo">—</div>
-        <div class="linha"><span>posição</span><span id="pos">—</span></div>
-        <div class="linha"><span>chaves</span><span id="chaves">—</span></div>
-        <div class="linha"><span>bônus consumidos</span><span id="bonus">—</span></div>
-        <div class="linha"><span>custo acumulado</span><span id="custo">—</span></div>
-        <div class="linha"><span>passo</span><span id="passo">—</span></div>
-        <div class="barra"><i id="progresso"></i></div>
-      </div>
+<div class="palco" id="palco"></div>
 
-      <div class="caixa">
-        <h2>percurso</h2>
-        <div class="linha"><span>algoritmo</span><span id="algInfo">—</span></div>
-        <div class="linha"><span>passos</span><span id="totPassos">—</span></div>
-        <div class="linha"><span>custo total</span><span id="totCusto">—</span></div>
-        <div id="semSolucao"></div>
-      </div>
+<div class="barra"><i id="progresso"></i></div>
 
-      <div class="caixa">
-        <h2>o grafo deste mapa</h2>
-        <div class="linha"><span>estados (ordem)</span><span id="mOrdem">—</span></div>
-        <div class="linha"><span>arcos (tamanho)</span><span id="mTam">—</span></div>
-        <div class="linha"><span>densidade</span><span id="mDens">—</span></div>
-        <div class="linha"><span>teto teórico</span><span id="mTeto">—</span></div>
-        <div class="linha"><span>taxa de ocupação</span><span id="mOcup">—</span></div>
-        <div class="linha"><span>estados-armadilha</span><span id="mArm">—</span></div>
-      </div>
-
-      <div class="caixa">
-        <h2>legenda</h2>
-        <div class="legenda">
-          <span><i style="background:var(--parede)"></i>parede</span>
-          <span><i style="background:var(--chao)"></i>chão 1</span>
-          <span><i style="background:var(--lama)"></i>lama 3</span>
-          <span><i style="background:var(--agua)"></i>água 5</span>
-          <span><i style="background:var(--chave)"></i>chave</span>
-          <span><i style="background:var(--porta)"></i>porta</span>
-          <span><i style="background:var(--esteira)"></i>esteira</span>
-          <span><i style="background:var(--bonus)"></i>bônus −4</span>
-          <span><i style="background:var(--fonte)"></i>fonte −2</span>
-          <span><i style="background:var(--inicio)"></i>início</span>
-          <span><i style="background:var(--saida)"></i>saída</span>
-        </div>
-      </div>
-    </aside>
+<section class="transporte">
+  <div class="botoes">
+    <button id="inicio" title="voltar ao início">|&#9664;</button>
+    <button id="voltar" title="um passo atrás">&#9664;</button>
+    <button id="tocar" class="tocar">&#9654; tocar</button>
+    <button id="avancar" title="um passo à frente">&#9654;</button>
+    <button id="fim" title="ir para o fim">&#9654;|</button>
   </div>
-</div>
+  <label class="campo">velocidade <input type="range" id="vel" min="1" max="12" value="3"><i id="velTxt" style="font-style:normal;color:var(--tinta2)">3/s</i></label>
+  <label class="campo">zoom <input type="range" id="zoom" min="8" max="42" value="24"></label>
+  <label class="alternar"><input type="checkbox" id="armad"> armadilhas</label>
+  <label class="alternar"><input type="checkbox" id="trilhaOn" checked> trilha</label>
+  <label class="alternar"><input type="checkbox" id="duplo"> comparar dois algoritmos</label>
+  <div class="marca-passo">passo <b id="passo">—</b></div>
+</section>
+
+<div class="rodape" id="rodape"></div>
+<div class="legenda" id="legenda"></div>
 
 <script>
 const DADOS = __DADOS__;
 
-const CLASSE = {"#":"p",".":"o","S":"S","G":"G",",":"m","~":"w","+":"b","*":"f",
-                ">":"e","<":"e","^":"e","v":"e"};
-function classeDe(ch){
-  if (CLASSE[ch]) return CLASSE[ch];
-  if ("abcd".includes(ch)) return "k";
-  if ("ABCD".includes(ch)) return "d";
-  return "o";
-}
+const CLASSE = {"#":"p",".":"o","S":"st","G":"go",",":"mu","~":"ag","+":"bo","*":"fo",
+                ">":"es","<":"es","^":"es","v":"es"};
+const classeDe = ch => CLASSE[ch] || ("abcd".includes(ch) ? "ch" : "ABCD".includes(ch) ? "po" : "o");
 
 const $ = id => document.getElementById(id);
-let mapaAtual=null, passos=[], i=0, tocando=false, timer=null, celulas=[];
+let mapa = null, pistas = [], i = 0, tocando = false, timer = null;
 
-function montarSelects(){
-  $("mapa").innerHTML = Object.keys(DADOS).sort()
-    .map(n=>`<option value="${n}">${n}</option>`).join("");
+function montar(){
+  $("mapa").innerHTML = Object.keys(DADOS).sort().map(n=>`<option>${n}</option>`).join("");
   trocarMapa();
 }
 
 function trocarMapa(){
-  mapaAtual = DADOS[$("mapa").value];
-  const algs = Object.keys(mapaAtual.percursos);
-  $("alg").innerHTML = algs.length
-    ? algs.sort().map(a=>`<option value="${a}">${a}</option>`).join("")
-    : `<option value="">(nenhum disponível)</option>`;
-  const cam = Object.keys(mapaAtual.camadas);
-  $("camada").innerHTML = `<option value="">todas</option>` +
-    cam.map(c=>`<option value="${c}">${c}</option>`).join("");
-  desenharGrade();
-  metricas();
-  trocarAlg();
+  mapa = DADOS[$("mapa").value];
+  const algs = Object.keys(mapa.percursos).sort();
+  $("alg").innerHTML = algs.length ? algs.map(a=>`<option>${a}</option>`).join("")
+                                   : `<option value="">nenhum</option>`;
+  const cam = Object.keys(mapa.camadas);
+  $("camada").innerHTML = `<option value="">todas</option>` + cam.map(c=>`<option>${c}</option>`).join("");
+  rodape(); legenda(); trocarAlg();
 }
 
-function desenharGrade(){
-  const g = $("grade");
-  g.style.gridTemplateColumns = `repeat(${mapaAtual.colunas}, var(--cel, 22px))`;
-  g.innerHTML = "";
-  celulas = [];
-  for (let l=0; l<mapaAtual.linhas; l++){
-    const linha = [];
-    for (let c=0; c<mapaAtual.colunas; c++){
-      const ch = mapaAtual.grade[l][c];
-      const d = document.createElement("div");
-      d.className = "cel " + classeDe(ch);
-      d.textContent = ch === "#" ? "" : ch;
-      d.title = `(${l},${c}) ${ch}`;
-      g.appendChild(d);
-      linha.push(d);
-    }
-    celulas.push(linha);
-  }
-}
-
-function metricas(){
-  const m = mapaAtual.metricas;
-  $("mOrdem").textContent = m.ordem;
-  $("mTam").textContent = m.tamanho;
-  $("mDens").textContent = m.densidade.toFixed(5);
-  $("mTeto").textContent = m.teto;
-  $("mOcup").textContent = m.teto ? (100*m.ordem/m.teto).toFixed(1)+"%" : "—";
-  $("mArm").textContent = mapaAtual.armadilhas.length;
+function algoritmosAtivos(){
+  const algs = Object.keys(mapa.percursos).sort();
+  if (!$("duplo").checked) return [$("alg").value].filter(Boolean);
+  const primeiro = $("alg").value;
+  const outro = algs.find(a => a !== primeiro && mapa.percursos[a].status === "OK");
+  return outro ? [primeiro, outro] : [primeiro].filter(Boolean);
 }
 
 function trocarAlg(){
   parar();
-  const a = $("alg").value;
-  const p = mapaAtual.percursos[a];
-  $("semSolucao").innerHTML = "";
-  if (!p || p.status !== "OK"){
-    passos = [];
-    $("algInfo").textContent = a || "—";
-    $("totPassos").textContent = "—";
-    $("totCusto").textContent = "—";
-    if (p && p.status === "SEM_SOLUCAO")
-      $("semSolucao").innerHTML = `<div class="aviso">Este algoritmo não encontrou caminho até o ALVO neste mapa.</div>`;
-    if (p && p.status === "CICLO_NEGATIVO")
-      $("semSolucao").innerHTML = `<div class="aviso"><b>Ciclo negativo detectado.</b> Não existe custo mínimo neste mapa: dá para repetir o ciclo abaixo indefinidamente e o custo cai para −∞.<br><br><span style="font-family:var(--mono);font-size:0.78rem;word-break:break-all">`
-        + p.ciclo.join(" → ") + `</span></div>`;
-  } else {
-    passos = p.passos;
-    $("algInfo").textContent = a;
-    $("totPassos").textContent = p.n_passos;
-    $("totCusto").textContent = p.custo;
-  }
+  const ativos = algoritmosAtivos();
+  pistas = ativos.map(a => ({nome:a, p:mapa.percursos[a]}));
   i = 0;
+  construirPalco();
+  aviso();
   render();
 }
 
-function render(){
-  // limpa marcacoes
-  for (const linha of celulas) for (const d of linha)
-    d.classList.remove("trilha","atual","armadilha","fora");
-
-  // camada selecionada: apaga o que nao existe nela
-  const cam = $("camada").value;
-  if (cam){
-    const dentro = new Set(mapaAtual.camadas[cam].map(([l,c])=>l+","+c));
-    for (let l=0;l<mapaAtual.linhas;l++) for (let c=0;c<mapaAtual.colunas;c++)
-      if (mapaAtual.grade[l][c] !== "#" && !dentro.has(l+","+c))
-        celulas[l][c].classList.add("fora");
-  }
-
-  // armadilhas
-  if ($("armad").checked)
-    for (const [l,c,ch] of mapaAtual.armadilhas)
-      if (!cam || ch === cam) celulas[l][c].classList.add("armadilha");
-
-  if (!passos.length){
-    $("rotulo").textContent = "—";
-    ["pos","chaves","bonus","custo","passo"].forEach(k=>$(k).textContent="—");
-    $("progresso").style.width = "0%";
-    return;
-  }
-
-  // trilha ate o passo atual
-  if ($("trilhaOn").checked)
-    for (let k=0;k<=i;k++){
-      const e = passos[k];
-      celulas[e.l][e.c].classList.add("trilha");
+function construirPalco(){
+  const palco = $("palco");
+  palco.innerHTML = "";
+  for (const pista of pistas){
+    const caixa = document.createElement("div");
+    caixa.className = "tabuleiro";
+    const rot = document.createElement("div");
+    rot.className = "tab-rot";
+    const p = pista.p;
+    const medida = pista.nome === "BFS" ? "" : (p.custo !== null ? " · custo " + p.custo : "");
+    rot.innerHTML = p.status === "OK"
+      ? `<b>${pista.nome}</b> · ${p.n_passos} passos${medida}`
+      : `<b>${pista.nome}</b> · ${p.status.toLowerCase().replace("_"," ")}`;
+    const g = document.createElement("div");
+    g.className = "grade";
+    g.style.gridTemplateColumns = `repeat(${mapa.colunas}, var(--cel,24px))`;
+    pista.celulas = [];
+    for (let l=0;l<mapa.linhas;l++){
+      const linha=[];
+      for (let c=0;c<mapa.colunas;c++){
+        const ch = mapa.grade[l][c];
+        const d = document.createElement("div");
+        d.className = "cel " + classeDe(ch);
+        d.textContent = ch === "#" ? "" : ch;
+        d.title = `(${l},${c}) ${ch}`;
+        g.appendChild(d); linha.push(d);
+      }
+      pista.celulas.push(linha);
     }
-
-  const e = passos[i];
-  celulas[e.l][e.c].classList.add("atual");
-
-  $("rotulo").textContent = e.rotulo;
-  $("pos").textContent = `(${e.l}, ${e.c})`;
-  $("chaves").textContent = e.chaves || "—";
-  $("bonus").textContent = e.bonus.length ? "{"+e.bonus.join(",")+"}" : "{}";
-  $("custo").textContent = e.custo;
-  $("passo").textContent = `${i} / ${passos.length-1}`;
-  $("progresso").style.width = (100*i/Math.max(1,passos.length-1))+"%";
+    caixa.append(rot, g);
+    palco.appendChild(caixa);
+  }
 }
 
-function ir(n){ if(!passos.length) return; i = Math.max(0, Math.min(passos.length-1, n)); render(); }
-function parar(){ tocando=false; clearInterval(timer); $("tocar").textContent="▶ Tocar"; }
+function maxPassos(){
+  return Math.max(0, ...pistas.map(p => p.p.status === "OK" ? p.p.passos.length - 1 : 0));
+}
+
+function render(){
+  const cam = $("camada").value;
+  const dentro = cam ? new Set(mapa.camadas[cam].map(([l,c])=>l+","+c)) : null;
+
+  for (const pista of pistas){
+    for (const linha of pista.celulas) for (const d of linha)
+      d.classList.remove("trilha","aqui","presa","apagada");
+
+    if (dentro)
+      for (let l=0;l<mapa.linhas;l++) for (let c=0;c<mapa.colunas;c++)
+        if (mapa.grade[l][c] !== "#" && !dentro.has(l+","+c))
+          pista.celulas[l][c].classList.add("apagada");
+
+    if ($("armad").checked)
+      for (const [l,c,ch] of mapa.armadilhas)
+        if (!cam || ch === cam) pista.celulas[l][c].classList.add("presa");
+
+    const passos = pista.p.status === "OK" ? pista.p.passos : [];
+    if (!passos.length) continue;
+    const k = Math.min(i, passos.length - 1);
+    if ($("trilhaOn").checked)
+      for (let j=0;j<=k;j++) pista.celulas[passos[j].l][passos[j].c].classList.add("trilha");
+    pista.celulas[passos[k].l][passos[k].c].classList.add("aqui");
+  }
+
+  const guia = pistas.find(p => p.p.status === "OK");
+  if (!guia){
+    $("rotulo").textContent = "—";
+    ["chaves","bonus","custo"].forEach(k=>$(k).textContent="—");
+    $("passo").textContent = "—";
+    $("progresso").style.width = "0";
+    return;
+  }
+  const passos = guia.p.passos;
+  const e = passos[Math.min(i, passos.length-1)];
+  $("rotulo").textContent = e.rotulo;
+  $("chaves").textContent = e.chaves || "—";
+  $("bonus").textContent = e.bonus.length ? "{"+e.bonus.join(",")+"}" : "{}";
+  $("custo").textContent = guia.nome === "BFS" ? "—" : e.custo;
+  const total = maxPassos();
+  $("passo").textContent = `${Math.min(i,total)} / ${total}`;
+  $("progresso").style.width = (100*Math.min(i,total)/Math.max(1,total))+"%";
+}
+
+function aviso(){
+  const p = pistas[0] && pistas[0].p;
+  const caixa = $("aviso");
+  if (!p || p.status === "OK"){ caixa.innerHTML = ""; return; }
+  if (p.status === "SEM_SOLUCAO")
+    caixa.innerHTML = `<p class="aviso">Sem solução. Nenhum caminho leva deste início até a saída — todos os estados alcançáveis são armadilha.</p>`;
+  if (p.status === "CICLO_NEGATIVO")
+    caixa.innerHTML = `<p class="aviso">Ciclo negativo. Não existe custo mínimo: dá para repetir este ciclo sem parar e o custo cai sem limite.<br><code>${p.ciclo.join("  →  ")}</code></p>`;
+  if (p.status === "RECUSA")
+    caixa.innerHTML = `<p class="aviso">Dijkstra recusou este mapa porque ele tem arco de peso negativo. Use o Bellman-Ford.</p>`;
+}
+
+function rodape(){
+  const m = mapa.metricas;
+  $("rodape").innerHTML = [
+    ["estados", m.ordem], ["arcos", m.tamanho],
+    ["densidade", m.densidade.toFixed(5)],
+    ["teto teórico", m.teto],
+    ["ocupação", m.teto ? (100*m.ordem/m.teto).toFixed(1)+"%" : "—"],
+    ["armadilhas", mapa.armadilhas.length],
+    ["camadas", Object.keys(mapa.camadas).length],
+  ].map(([k,v])=>`<span>${k} <b>${v}</b></span>`).join("");
+}
+
+function legenda(){
+  const vistos = new Set(mapa.grade.flat());
+  const itens = [["#","parede","--parede"],[".","chão 1","--chao"],[",","lama 3","--lama"],
+                 ["~","água 5","--agua"],["+","bônus −4","--bonus"],["*","fonte −2","--fonte"],
+                 ["S","início","--inicio"],["G","saída","--saida"]];
+  let html = itens.filter(([c])=>vistos.has(c))
+    .map(([,n,v])=>`<span><i class="sw" style="background:var(${v})"></i>${n}</span>`).join("");
+  if ([...vistos].some(c=>"abcd".includes(c))) html += `<span><i class="sw" style="background:var(--chave)"></i>chave</span>`;
+  if ([...vistos].some(c=>"ABCD".includes(c))) html += `<span><i class="sw" style="background:var(--porta)"></i>porta</span>`;
+  if ([...vistos].some(c=>"><^v".includes(c))) html += `<span><i class="sw" style="background:var(--esteira)"></i>esteira</span>`;
+  html += `<span><i class="sw" style="background:var(--azul)"></i>trilha</span>`;
+  html += `<span><i class="sw" style="box-shadow:inset 0 0 0 2px var(--alerta)"></i>armadilha</span>`;
+  $("legenda").innerHTML = html;
+}
+
+function ir(n){ const t = maxPassos(); if(!t) return; i = Math.max(0, Math.min(t, n)); render(); }
+function parar(){ tocando=false; clearInterval(timer); $("tocar").innerHTML="&#9654; tocar"; }
 function tocar(){
-  if (!passos.length) return;
-  if (tocando){ parar(); return; }
-  if (i >= passos.length-1) i = 0;
-  tocando = true; $("tocar").textContent="⏸ Pausar";
+  const t = maxPassos();
+  if (!t) return;
+  if (tocando) return parar();
+  if (i >= t) i = 0;
+  tocando = true; $("tocar").innerHTML="&#10073;&#10073; pausar";
   clearInterval(timer);
-  timer = setInterval(()=>{
-    if (i >= passos.length-1){ parar(); return; }
-    i++; render();
-  }, 1000/Number($("vel").value));
+  timer = setInterval(()=>{ if (i >= maxPassos()) return parar(); i++; render(); },
+                      1000/Number($("vel").value));
 }
 
 $("mapa").onchange = trocarMapa;
 $("alg").onchange = trocarAlg;
+$("duplo").onchange = trocarAlg;
 $("camada").onchange = render;
 $("armad").onchange = render;
 $("trilhaOn").onchange = render;
@@ -511,16 +513,20 @@ $("tocar").onclick = tocar;
 $("avancar").onclick = ()=>{parar(); ir(i+1);};
 $("voltar").onclick  = ()=>{parar(); ir(i-1);};
 $("inicio").onclick  = ()=>{parar(); ir(0);};
-$("fim").onclick     = ()=>{parar(); ir(passos.length-1);};
-$("vel").oninput = e => { $("velTxt").textContent = e.target.value; if (tocando){ parar(); tocar(); } };
+$("fim").onclick     = ()=>{parar(); ir(maxPassos());};
+$("vel").oninput = e => { $("velTxt").textContent = e.target.value+"/s"; if (tocando){ parar(); tocar(); } };
 $("zoom").oninput = e => document.documentElement.style.setProperty("--cel", e.target.value+"px");
+$("tema").onclick = () => {
+  const atual = document.documentElement.getAttribute("data-theme");
+  document.documentElement.setAttribute("data-theme", atual === "light" ? "dark" : "light");
+};
 document.addEventListener("keydown", ev=>{
   if (ev.key === "ArrowRight"){ parar(); ir(i+1); }
   if (ev.key === "ArrowLeft"){ parar(); ir(i-1); }
   if (ev.key === " "){ ev.preventDefault(); tocar(); }
 });
 
-montarSelects();
+montar();
 </script>
 </html>
 """
