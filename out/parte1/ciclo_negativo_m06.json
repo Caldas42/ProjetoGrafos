@@ -1,0 +1,10 @@
+{
+  "mapa": "m06_fonte",
+  "tem_ciclo_negativo": true,
+  "custo_do_ciclo": -1,
+  "ciclo": [
+    "(3,5)|-|{}",
+    "(3,6)|-|{}",
+    "(3,5)|-|{}"
+  ]
+}

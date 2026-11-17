@@ -1,0 +1,213 @@
+{
+  "m01_terreno": {
+    "g_pos": {
+      "ordem": 24,
+      "tamanho": 46,
+      "densidade": 0.083333
+    },
+    "g_est": {
+      "ordem": 24,
+      "tamanho": 47,
+      "densidade": 0.078333
+    },
+    "teto_teorico": 24,
+    "taxa_de_ocupacao": 1.0,
+    "maior_grau_saida": {
+      "estado": "(1,1)|-|{}",
+      "grau": 2
+    },
+    "maior_grau_entrada": {
+      "estado": "(1,1)|-|{}",
+      "grau": 2
+    },
+    "becos": [],
+    "multiplicidade_maxima": 1,
+    "casas_com_multiplicidade_maxima": 24,
+    "estados_armadilha": 0
+  },
+  "m02_uma_chave": {
+    "g_pos": {
+      "ordem": 23,
+      "tamanho": 43,
+      "densidade": 0.08498
+    },
+    "g_est": {
+      "ordem": 39,
+      "tamanho": 75,
+      "densidade": 0.048077
+    },
+    "teto_teorico": 46,
+    "taxa_de_ocupacao": 0.847826,
+    "maior_grau_saida": {
+      "estado": "(1,1)|-|{}",
+      "grau": 2
+    },
+    "maior_grau_entrada": {
+      "estado": "(1,1)|-|{}",
+      "grau": 2
+    },
+    "becos": [],
+    "multiplicidade_maxima": 2,
+    "casas_com_multiplicidade_maxima": 16,
+    "estados_armadilha": 0
+  },
+  "m03_tres_chaves": {
+    "g_pos": {
+      "ordem": 76,
+      "tamanho": 167,
+      "densidade": 0.029298
+    },
+    "g_est": {
+      "ordem": 213,
+      "tamanho": 467,
+      "densidade": 0.010245
+    },
+    "teto_teorico": 608,
+    "taxa_de_ocupacao": 0.350329,
+    "maior_grau_saida": {
+      "estado": "(3,12)|abc|{}",
+      "grau": 3
+    },
+    "maior_grau_entrada": {
+      "estado": "(1,12)|ab|{}",
+      "grau": 3
+    },
+    "becos": [],
+    "multiplicidade_maxima": 4,
+    "casas_com_multiplicidade_maxima": 12,
+    "estados_armadilha": 0
+  },
+  "m04_esteiras": {
+    "g_pos": {
+      "ordem": 24,
+      "tamanho": 39,
+      "densidade": 0.070652
+    },
+    "g_est": {
+      "ordem": 37,
+      "tamanho": 67,
+      "densidade": 0.047653
+    },
+    "teto_teorico": 48,
+    "taxa_de_ocupacao": 0.770833,
+    "maior_grau_saida": {
+      "estado": "(3,8)|-|{}",
+      "grau": 3
+    },
+    "maior_grau_entrada": {
+      "estado": "(3,8)|-|{}",
+      "grau": 3
+    },
+    "becos": [
+      "(1,3)|-|{}",
+      "(1,3)|a|{}"
+    ],
+    "multiplicidade_maxima": 2,
+    "casas_com_multiplicidade_maxima": 17,
+    "estados_armadilha": 4
+  },
+  "m05_bonus": {
+    "g_pos": {
+      "ordem": 44,
+      "tamanho": 90,
+      "densidade": 0.047569
+    },
+    "g_est": {
+      "ordem": 215,
+      "tamanho": 444,
+      "densidade": 0.009561
+    },
+    "teto_teorico": 352,
+    "taxa_de_ocupacao": 0.610795,
+    "maior_grau_saida": {
+      "estado": "(3,1)|-|{0,1,2}",
+      "grau": 3
+    },
+    "maior_grau_entrada": {
+      "estado": "(3,10)|-|{0,1,2}",
+      "grau": 4
+    },
+    "becos": [],
+    "multiplicidade_maxima": 6,
+    "casas_com_multiplicidade_maxima": 21,
+    "estados_armadilha": 0
+  },
+  "m06_fonte": {
+    "g_pos": {
+      "ordem": 24,
+      "tamanho": 46,
+      "densidade": 0.083333
+    },
+    "g_est": {
+      "ordem": 24,
+      "tamanho": 47,
+      "densidade": 0.078333
+    },
+    "teto_teorico": 24,
+    "taxa_de_ocupacao": 1.0,
+    "maior_grau_saida": {
+      "estado": "(1,1)|-|{}",
+      "grau": 2
+    },
+    "maior_grau_entrada": {
+      "estado": "(1,1)|-|{}",
+      "grau": 2
+    },
+    "becos": [],
+    "multiplicidade_maxima": 1,
+    "casas_com_multiplicidade_maxima": 24,
+    "estados_armadilha": 0
+  },
+  "m07_impossivel": {
+    "g_pos": {
+      "ordem": 31,
+      "tamanho": 69,
+      "densidade": 0.074194
+    },
+    "g_est": {
+      "ordem": 16,
+      "tamanho": 38,
+      "densidade": 0.139706
+    },
+    "teto_teorico": 62,
+    "taxa_de_ocupacao": 0.258065,
+    "maior_grau_saida": {
+      "estado": "(3,1)|-|{}",
+      "grau": 3
+    },
+    "maior_grau_entrada": {
+      "estado": "(3,1)|-|{}",
+      "grau": 3
+    },
+    "becos": [],
+    "multiplicidade_maxima": 1,
+    "casas_com_multiplicidade_maxima": 16,
+    "estados_armadilha": 16
+  },
+  "m08_grande": {
+    "g_pos": {
+      "ordem": 1169,
+      "tamanho": 2574,
+      "densidade": 0.001885
+    },
+    "g_est": {
+      "ordem": 2919,
+      "tamanho": 6365,
+      "densidade": 0.000747
+    },
+    "teto_teorico": 18704,
+    "taxa_de_ocupacao": 0.156063,
+    "maior_grau_saida": {
+      "estado": "(11,65)|abcd|{}",
+      "grau": 4
+    },
+    "maior_grau_entrada": {
+      "estado": "(11,65)|abcd|{}",
+      "grau": 4
+    },
+    "becos": [],
+    "multiplicidade_maxima": 5,
+    "casas_com_multiplicidade_maxima": 165,
+    "estados_armadilha": 0
+  }
+}

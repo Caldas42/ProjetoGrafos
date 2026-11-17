@@ -16,38 +16,69 @@ Responsabilidades deste arquivo:
 import heapq
 from collections import deque
 
+NAO_VISITADO = "NAO_VISITADO"
+VISITADO = "VISITADO"
+ENCERRADO = "ENCERRADO"
+
+
+def dfs_completa(grafo, v0):
+    estado = {v: NAO_VISITADO for v in grafo}
+    pais = {v: None for v in grafo}
+    descoberta = {}
+    termino = {}
+    arcos = []
+    tempo = 0
+
+    estado[v0] = VISITADO
+    descoberta[v0] = tempo
+    tempo += 1
+    pilha = [(v0, 0)]
+
+    while pilha:
+        u, i = pilha[-1]
+        vizinhos = grafo.get(u, [])
+
+        if i < len(vizinhos):
+            pilha[-1] = (u, i + 1)
+            v, _ = vizinhos[i]
+            situacao = estado.get(v, NAO_VISITADO)
+
+            if situacao == NAO_VISITADO:
+                arcos.append((u, v, "arvore"))
+                pais[v] = u
+                estado[v] = VISITADO
+                descoberta[v] = tempo
+                tempo += 1
+                pilha.append((v, 0))
+            elif situacao == VISITADO:
+                arcos.append((u, v, "retorno"))
+            elif descoberta[u] < descoberta[v]:
+                arcos.append((u, v, "avanco"))
+            else:
+                arcos.append((u, v, "cruzamento"))
+        else:
+            pilha.pop()
+            estado[u] = ENCERRADO
+            termino[u] = tempo
+            tempo += 1
+
+    return estado, pais, descoberta, termino, arcos
+
+
 def dfs(grafo, v0):
-    NAO_VISITADO = "NAO_VISITADO"
-    VISITADO = "VISITADO"
-    ENCERRADO = "ENCERRADO"
-
-    estado = {v: NAO_VISITADO for v in grafo} #inicializa os vértices
-    p = {v: None for v in grafo}   # pai
-    t = {}                         # tempo de cada vértice
-    tempo = -1
-
-    def visita_vertice(vi):
-        nonlocal tempo
-        tempo += 1
-        estado[vi] = VISITADO
-        t[vi] = tempo
-
-        for vj, peso in grafo[vi]:          #visita os filhos
-            if estado[vj] == NAO_VISITADO:
-                p[vj] = vi
-                visita_vertice(vj)
-
-        estado[vi] = ENCERRADO
-        tempo += 1
-
-    visita_vertice(v0)
-    return estado, p, t
+    estado, pais, descoberta, _, _ = dfs_completa(grafo, v0)
+    return estado, pais, descoberta
 
 
-#estado, p, t = dfs(grafo, "A")
-#print("estado:", estado)
-#print("pai:   ", p)
-#print("t:     ", t)
+def classificar_arcos(grafo, v0):
+    return dfs_completa(grafo, v0)[4]
+
+
+def tem_ciclo(grafo, v0):
+    for _, _, tipo in classificar_arcos(grafo, v0):
+        if tipo == "retorno":
+            return True
+    return False
 
 
 INF = float("inf")

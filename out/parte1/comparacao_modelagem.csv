@@ -1,0 +1,10 @@
+mapa,abordagem,passos,caminho_valido,observacao
+m02_uma_chave,"G_pos, porta como chao",10,nao,"caminho INVALIDO: atravessa porta trancada em (1,6)"
+m02_uma_chave,"G_pos, porta como parede",,nao,nenhuma saida alcancavel: a modelagem FALHA
+m02_uma_chave,G_est,34,sim,modelagem correta
+m03_tres_chaves,"G_pos, porta como chao",21,nao,"caminho INVALIDO: atravessa porta trancada em (7,13)"
+m03_tres_chaves,"G_pos, porta como parede",,nao,nenhuma saida alcancavel: a modelagem FALHA
+m03_tres_chaves,G_est,87,sim,modelagem correta
+m04_esteiras,"G_pos, porta como chao",14,nao,"caminho INVALIDO: atravessa porta trancada em (1,10)"
+m04_esteiras,"G_pos, porta como parede",,nao,nenhuma saida alcancavel: a modelagem FALHA
+m04_esteiras,G_est,20,sim,modelagem correta
