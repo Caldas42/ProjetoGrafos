@@ -183,161 +183,189 @@ PAGINA = r"""<!doctype html>
 <title>Labirinto Interativo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap">
 <style>
-  :root {
-    --fundo:#12141a; --palco:#0b0d12; --painel:#1a1d26; --linha:#282c38;
-    --tinta:#e9ebf2; --tinta2:#9aa0b2; --tinta3:#656b7d;
-    --azul:#5598e7; --azul-forte:#86b6ef;
-    --parede:#2e3342; --chao:#e4e9f0; --chao-txt:#aab2c2;
+  :root{
+    --bg:#0f172a; --card:#1b2336; --muted:#272f42; --borda:#475569;
+    --txt:#f8fafc; --txt2:#94a3b8; --txt3:#64748b;
+    --verde:#22c55e; --verde-escuro:#16a34a; --sobre-verde:#0f172a;
+    --azul:#60a5fa; --vermelho:#ef4444;
+    --parede:#2b3348; --chao:#e9edf4; --chao-txt:#aab4c6;
     --lama:#c08c4a; --agua:#6fa8d6; --chave:#f2d750; --porta:#b49ad8;
     --inicio:#67c18a; --saida:#f0a05a; --esteira:#8a93a6;
-    --bonus:#e5739b; --fonte:#58c3bc; --alerta:#e08a8a;
-    --m:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
-    --cel:24px;
+    --bonus:#e5739b; --fonte:#58c3bc;
+    --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+    --cel:30px; --r:10px;
   }
   :root[data-theme="light"]{
-    --fundo:#eceef3; --palco:#dfe3ea; --painel:#ffffff; --linha:#ccd1dc;
-    --tinta:#171a21; --tinta2:#5b6173; --tinta3:#878da0;
-    --azul:#2a78d6; --azul-forte:#1c5cab;
-    --parede:#3a3e4a; --chao:#ffffff; --chao-txt:#b9bfcc;
+    --bg:#eef1f6; --card:#ffffff; --muted:#e3e8f0; --borda:#c3cbd9;
+    --txt:#0f172a; --txt2:#475569; --txt3:#748093;
+    --verde:#16a34a; --verde-escuro:#15803d; --sobre-verde:#ffffff;
+    --azul:#2563eb; --parede:#3a4256; --chao:#ffffff; --chao-txt:#b9c1cf;
   }
   *{box-sizing:border-box}
-  html,body{margin:0;background:var(--fundo);color:var(--tinta);font-family:var(--m)}
-  body{font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  html,body{margin:0;background:var(--bg);color:var(--txt);font-family:var(--sans)}
+  body{font-size:14.5px;line-height:1.5;-webkit-font-smoothing:antialiased}
   button,select,input{font-family:inherit;color:inherit}
+  button{cursor:pointer}
+  .mono{font-family:var(--mono)}
 
-  .topo{display:flex;flex-wrap:wrap;align-items:center;gap:1rem;
-        padding:.85rem 1.25rem;border-bottom:1px solid var(--linha);background:var(--painel)}
-  .marca{font-weight:700;letter-spacing:-.02em;font-size:.95rem;margin-right:auto}
-  .marca b{color:var(--azul)}
-  .campo{display:flex;align-items:center;gap:.45rem;font-size:.78rem;color:var(--tinta3)}
-  select{background:var(--fundo);border:1px solid var(--linha);border-radius:5px;
-         padding:.3rem .5rem;font-size:.82rem;font-weight:500}
-  select:hover{border-color:var(--azul)}
-  .tema{background:none;border:1px solid var(--linha);border-radius:5px;
-        padding:.3rem .55rem;cursor:pointer;font-size:.78rem;color:var(--tinta2)}
-  .tema:hover{border-color:var(--azul);color:var(--tinta)}
+  .casca{max-width:1400px;margin:0 auto;padding:1.1rem 1.1rem 3rem;
+         display:flex;flex-direction:column;gap:1rem}
 
-  .estado{display:flex;flex-wrap:wrap;align-items:baseline;gap:.5rem 1.6rem;
-          padding:1.1rem 1.25rem .9rem;background:var(--painel);border-bottom:1px solid var(--linha)}
-  .rotulo{font-size:clamp(1.3rem,3.4vw,2.1rem);font-weight:700;letter-spacing:-.03em;
-          color:var(--azul-forte);white-space:nowrap}
-  .leitura{display:flex;flex-wrap:wrap;gap:.3rem 1.4rem;font-size:.8rem;color:var(--tinta3)}
-  .leitura i{font-style:normal;color:var(--tinta);font-weight:500}
+  .topo{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem 1rem}
+  .marca{font-family:var(--mono);font-weight:700;font-size:1rem;letter-spacing:-.02em;
+         margin-right:auto;display:flex;align-items:center;gap:.5rem}
+  .ponto{width:9px;height:9px;border-radius:50%;background:var(--verde);flex:none}
+  .campo{display:flex;align-items:center;gap:.4rem;font-size:.82rem;color:var(--txt3)}
+  select{background:var(--card);border:1px solid var(--borda);border-radius:7px;
+         padding:.4rem .55rem;font-size:.84rem;font-weight:500;cursor:pointer;
+         transition:border-color .18s ease}
+  select:hover{border-color:var(--verde)}
+  .tema{background:var(--card);border:1px solid var(--borda);border-radius:7px;
+        padding:.4rem .7rem;font-size:.82rem;color:var(--txt2);transition:all .18s ease}
+  .tema:hover{border-color:var(--verde);color:var(--txt)}
 
-  .palco{background:var(--palco);padding:1.5rem 1rem;display:flex;
-         justify-content:center;gap:1.5rem;overflow:auto;flex-wrap:wrap}
-  .tabuleiro{display:flex;flex-direction:column;gap:.5rem;align-items:center}
-  .tab-rot{font-size:.72rem;color:var(--tinta3);letter-spacing:.04em}
-  .tab-rot b{color:var(--azul);font-weight:500}
-  .grade{display:inline-grid;gap:1px;background:var(--linha);padding:1px;border-radius:3px}
+  .grelha{display:grid;grid-template-columns:minmax(0,1fr) 19rem;gap:1rem;align-items:start}
+  @media (max-width:980px){.grelha{grid-template-columns:1fr}}
+
+  .quadro{background:var(--card);border:1px solid var(--borda);border-radius:var(--r);
+          overflow:hidden}
+
+  .palco{padding:1.6rem 1.1rem;display:flex;justify-content:center;gap:1.6rem;
+         flex-wrap:wrap;overflow:auto;background:var(--bg)}
+  .pista{display:flex;flex-direction:column;gap:.6rem;align-items:center}
+  .pista-rot{font-family:var(--mono);font-size:.76rem;color:var(--txt3)}
+  .pista-rot b{color:var(--verde);font-weight:700}
+  .grade{display:inline-grid;gap:1px;background:var(--borda);padding:1px;border-radius:5px}
   .cel{width:var(--cel);height:var(--cel);display:flex;align-items:center;justify-content:center;
-       font-size:calc(var(--cel)*.52);font-weight:500;color:#171a21;background:var(--chao);position:relative}
+       font-family:var(--mono);font-size:calc(var(--cel)*.46);font-weight:500;
+       color:#0f172a;background:var(--chao);position:relative}
   .p{background:var(--parede);color:transparent}
   .o{background:var(--chao);color:var(--chao-txt)}
   .st{background:var(--inicio)} .go{background:var(--saida)}
   .mu{background:var(--lama)} .ag{background:var(--agua)}
   .ch{background:var(--chave)} .po{background:var(--porta)}
   .es{background:var(--esteira)} .bo{background:var(--bonus)} .fo{background:var(--fonte)}
-  .apagada{opacity:.18}
-  .trilha::after{content:"";position:absolute;inset:32%;border-radius:50%;
-                 background:var(--azul);opacity:.42}
-  .presa{box-shadow:inset 0 0 0 2px var(--alerta)}
-  .aqui{box-shadow:inset 0 0 0 3px #171a21,0 0 0 2px var(--azul);z-index:2}
-  .aqui::before{content:"";position:absolute;inset:24%;border-radius:50%;background:#171a21}
+  .apagada{opacity:.16}
+  .trilha::after{content:"";position:absolute;inset:30%;border-radius:50%;
+                 background:var(--azul);opacity:.5}
+  .presa{box-shadow:inset 0 0 0 2px var(--vermelho)}
+  .aqui{box-shadow:inset 0 0 0 3px #0f172a,0 0 0 3px var(--verde);z-index:2}
+  .aqui::before{content:"";position:absolute;inset:26%;border-radius:50%;background:#0f172a}
 
-  .transporte{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem 1.1rem;
-              padding:.75rem 1.25rem;background:var(--painel);border-top:1px solid var(--linha);
-              border-bottom:1px solid var(--linha)}
-  .botoes{display:flex;gap:.25rem}
-  .botoes button{background:var(--fundo);border:1px solid var(--linha);color:var(--tinta2);
-                 width:2.1rem;height:2.1rem;border-radius:5px;cursor:pointer;font-size:.8rem;
-                 display:flex;align-items:center;justify-content:center}
-  .botoes button:hover:not(:disabled){border-color:var(--azul);color:var(--tinta)}
-  .botoes button.tocar{width:auto;padding:0 .9rem;background:var(--azul);border-color:var(--azul);
-                       color:#0b0d12;font-weight:700;letter-spacing:-.01em}
+  .transporte{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem 1.2rem;
+              padding:.75rem 1rem;border-top:1px solid var(--borda);background:var(--card)}
+  .botoes{display:flex;gap:.3rem}
+  .botoes button{background:var(--muted);border:1px solid var(--borda);color:var(--txt2);
+                 min-width:44px;height:44px;border-radius:8px;font-size:.85rem;
+                 display:flex;align-items:center;justify-content:center;transition:all .18s ease}
+  .botoes button:hover:not(:disabled){border-color:var(--verde);color:var(--txt)}
+  .botoes button.tocar{min-width:auto;padding:0 1.1rem;background:var(--verde);
+                       border-color:var(--verde);color:var(--sobre-verde);font-weight:700}
+  .botoes button.tocar:hover{background:var(--verde-escuro);border-color:var(--verde-escuro)}
   .botoes button:disabled{opacity:.35;cursor:not-allowed}
-  input[type=range]{accent-color:var(--azul);width:7.5rem;background:none}
-  .marca-passo{font-size:.78rem;color:var(--tinta3);margin-left:auto}
-  .marca-passo b{color:var(--tinta);font-weight:500}
-  .barra{height:3px;background:var(--linha);position:relative}
-  .barra i{display:block;height:100%;background:var(--azul);width:0}
-  .alternar{display:flex;align-items:center;gap:.4rem;font-size:.78rem;
-            color:var(--tinta3);cursor:pointer;user-select:none}
-  .alternar input{accent-color:var(--azul);margin:0}
+  input[type=range]{accent-color:var(--verde);width:7rem}
+  .alternar{display:flex;align-items:center;gap:.45rem;font-size:.82rem;
+            color:var(--txt2);cursor:pointer;user-select:none;min-height:44px}
+  .alternar input{accent-color:var(--verde);width:17px;height:17px;margin:0;cursor:pointer}
+  .barra{height:4px;background:var(--muted)}
+  .barra i{display:block;height:100%;background:var(--verde);width:0;transition:width .12s linear}
 
-  .rodape{display:flex;flex-wrap:wrap;gap:.35rem 1.6rem;padding:.8rem 1.25rem;
-          font-size:.76rem;color:var(--tinta3);border-bottom:1px solid var(--linha)}
-  .rodape b{color:var(--tinta);font-weight:500}
-  .aviso{margin:0;padding:.75rem 1.25rem;background:#2a1a1e;color:var(--alerta);font-size:.8rem;
-         border-bottom:1px solid var(--linha)}
-  :root[data-theme="light"] .aviso{background:#fbe8e8}
-  .aviso code{color:var(--tinta2);font-size:.74rem;word-break:break-all}
+  aside{display:flex;flex-direction:column;gap:1rem}
+  .bloco{background:var(--card);border:1px solid var(--borda);border-radius:var(--r);padding:1rem}
+  .bloco h2{font-size:.72rem;font-weight:600;color:var(--txt3);margin:0 0 .7rem;
+            letter-spacing:.02em}
+  .rotulo{font-family:var(--mono);font-size:clamp(1.05rem,2.2vw,1.4rem);font-weight:700;
+          color:var(--verde);word-break:break-all;line-height:1.25;margin-bottom:.7rem}
+  .par{display:flex;justify-content:space-between;gap:.8rem;padding:.22rem 0;font-size:.85rem}
+  .par span:first-child{color:var(--txt3)}
+  .par span:last-child{font-family:var(--mono);font-weight:500;font-variant-numeric:tabular-nums}
+  .aviso{border-radius:8px;padding:.75rem .9rem;font-size:.83rem;line-height:1.45;
+         background:rgba(239,68,68,.12);color:#fca5a5;border:1px solid rgba(239,68,68,.35)}
+  :root[data-theme="light"] .aviso{background:#fdeaea;color:#9b1c1c;border-color:#f3bcbc}
+  .aviso code{font-family:var(--mono);font-size:.74rem;word-break:break-all;opacity:.85}
+  .legenda{display:flex;flex-wrap:wrap;gap:.4rem .9rem;font-size:.78rem;color:var(--txt2)}
+  .legenda span{display:inline-flex;align-items:center;gap:.4rem}
+  .sw{width:.85rem;height:.85rem;border-radius:3px;border:1px solid var(--borda);flex:none}
 
-  .legenda{display:flex;flex-wrap:wrap;gap:.3rem 1rem;padding:.8rem 1.25rem;
-           font-size:.74rem;color:var(--tinta3)}
-  .legenda span{display:inline-flex;align-items:center;gap:.35rem}
-  .sw{width:.8rem;height:.8rem;border-radius:2px;border:1px solid var(--linha)}
-  :focus-visible{outline:2px solid var(--azul);outline-offset:2px}
+  :focus-visible{outline:2px solid var(--verde);outline-offset:2px}
   @media (prefers-reduced-motion:reduce){*{transition:none!important}}
-  @media (max-width:720px){.rotulo{font-size:1.15rem}.estado{gap:.4rem .9rem}}
+  @media (max-width:520px){.casca{padding:.8rem .7rem 2rem}.palco{padding:1rem .5rem}}
 </style>
 
-<header class="topo">
-  <div class="marca">labirinto <b>interativo</b></div>
-  <label class="campo">mapa <select id="mapa"></select></label>
-  <label class="campo">algoritmo <select id="alg"></select></label>
-  <label class="campo">camada <select id="camada"></select></label>
-  <button class="tema" id="tema">tema</button>
-</header>
+<div class="casca">
+  <header class="topo">
+    <div class="marca"><i class="ponto"></i>labirinto interativo</div>
+    <label class="campo">mapa <select id="mapa"></select></label>
+    <label class="campo">algoritmo <select id="alg"></select></label>
+    <label class="campo">camada <select id="camada"></select></label>
+    <button class="tema" id="tema">alternar tema</button>
+  </header>
 
-<section class="estado">
-  <div class="rotulo" id="rotulo">—</div>
-  <div class="leitura">
-    <span>chaves <i id="chaves">—</i></span>
-    <span>bônus <i id="bonus">—</i></span>
-    <span>custo acumulado <i id="custo">—</i></span>
+  <div class="grelha">
+    <div>
+      <div class="quadro">
+        <div class="palco" id="palco"></div>
+        <div class="barra"><i id="progresso"></i></div>
+        <div class="transporte">
+          <div class="botoes">
+            <button id="inicio" aria-label="Voltar ao início" title="Voltar ao início">|&#9664;</button>
+            <button id="voltar" aria-label="Um passo atrás" title="Um passo atrás">&#9664;</button>
+            <button id="tocar" class="tocar" aria-label="Tocar a animação">&#9654; tocar</button>
+            <button id="avancar" aria-label="Um passo à frente" title="Um passo à frente">&#9654;</button>
+            <button id="fim" aria-label="Ir para o fim" title="Ir para o fim">&#9654;|</button>
+          </div>
+          <label class="campo">velocidade
+            <input type="range" id="vel" min="1" max="12" value="3" aria-label="Passos por segundo">
+            <b class="mono" id="velTxt" style="color:var(--txt2);font-weight:500">3/s</b></label>
+          <label class="campo">zoom
+            <input type="range" id="zoom" min="10" max="46" value="30" aria-label="Tamanho das casas"></label>
+          <label class="alternar"><input type="checkbox" id="armad"> armadilhas</label>
+          <label class="alternar"><input type="checkbox" id="trilhaOn" checked> trilha</label>
+          <label class="alternar"><input type="checkbox" id="duplo"> comparar dois</label>
+          <div class="campo" style="margin-left:auto">passo
+            <b class="mono" id="passo" style="color:var(--txt)">&mdash;</b></div>
+        </div>
+      </div>
+    </div>
+
+    <aside>
+      <div class="bloco">
+        <h2>estado atual</h2>
+        <div class="rotulo" id="rotulo">&mdash;</div>
+        <div class="par"><span>posição</span><span id="pos">&mdash;</span></div>
+        <div class="par"><span>chaves</span><span id="chaves">&mdash;</span></div>
+        <div class="par"><span>bônus consumidos</span><span id="bonus">&mdash;</span></div>
+        <div class="par"><span>custo acumulado</span><span id="custo">&mdash;</span></div>
+      </div>
+      <div id="caixaAviso"></div>
+      <div class="bloco">
+        <h2>o grafo deste mapa</h2>
+        <div id="metricas"></div>
+      </div>
+      <div class="bloco">
+        <h2>legenda</h2>
+        <div class="legenda" id="legenda"></div>
+      </div>
+    </aside>
   </div>
-</section>
-
-<div id="aviso"></div>
-
-<div class="palco" id="palco"></div>
-
-<div class="barra"><i id="progresso"></i></div>
-
-<section class="transporte">
-  <div class="botoes">
-    <button id="inicio" title="voltar ao início">|&#9664;</button>
-    <button id="voltar" title="um passo atrás">&#9664;</button>
-    <button id="tocar" class="tocar">&#9654; tocar</button>
-    <button id="avancar" title="um passo à frente">&#9654;</button>
-    <button id="fim" title="ir para o fim">&#9654;|</button>
-  </div>
-  <label class="campo">velocidade <input type="range" id="vel" min="1" max="12" value="3"><i id="velTxt" style="font-style:normal;color:var(--tinta2)">3/s</i></label>
-  <label class="campo">zoom <input type="range" id="zoom" min="8" max="42" value="24"></label>
-  <label class="alternar"><input type="checkbox" id="armad"> armadilhas</label>
-  <label class="alternar"><input type="checkbox" id="trilhaOn" checked> trilha</label>
-  <label class="alternar"><input type="checkbox" id="duplo"> comparar dois algoritmos</label>
-  <div class="marca-passo">passo <b id="passo">—</b></div>
-</section>
-
-<div class="rodape" id="rodape"></div>
-<div class="legenda" id="legenda"></div>
+</div>
 
 <script>
 const DADOS = __DADOS__;
-
 const CLASSE = {"#":"p",".":"o","S":"st","G":"go",",":"mu","~":"ag","+":"bo","*":"fo",
                 ">":"es","<":"es","^":"es","v":"es"};
 const classeDe = ch => CLASSE[ch] || ("abcd".includes(ch) ? "ch" : "ABCD".includes(ch) ? "po" : "o");
-
 const $ = id => document.getElementById(id);
+const semMovimento = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
 let mapa = null, pistas = [], i = 0, tocando = false, timer = null;
 
 function montar(){
   $("mapa").innerHTML = Object.keys(DADOS).sort().map(n=>`<option>${n}</option>`).join("");
+  if (semMovimento()) $("tocar").disabled = true;
   trocarMapa();
 }
 
@@ -346,48 +374,45 @@ function trocarMapa(){
   const algs = Object.keys(mapa.percursos).sort();
   $("alg").innerHTML = algs.length ? algs.map(a=>`<option>${a}</option>`).join("")
                                    : `<option value="">nenhum</option>`;
-  const cam = Object.keys(mapa.camadas);
-  $("camada").innerHTML = `<option value="">todas</option>` + cam.map(c=>`<option>${c}</option>`).join("");
-  rodape(); legenda(); trocarAlg();
+  $("camada").innerHTML = `<option value="">todas</option>`
+    + Object.keys(mapa.camadas).map(c=>`<option>${c}</option>`).join("");
+  metricas(); legenda(); trocarAlg();
 }
 
-function algoritmosAtivos(){
+function ativos(){
   const algs = Object.keys(mapa.percursos).sort();
-  if (!$("duplo").checked) return [$("alg").value].filter(Boolean);
   const primeiro = $("alg").value;
+  if (!$("duplo").checked) return [primeiro].filter(Boolean);
   const outro = algs.find(a => a !== primeiro && mapa.percursos[a].status === "OK");
   return outro ? [primeiro, outro] : [primeiro].filter(Boolean);
 }
 
 function trocarAlg(){
   parar();
-  const ativos = algoritmosAtivos();
-  pistas = ativos.map(a => ({nome:a, p:mapa.percursos[a]}));
+  pistas = ativos().map(a => ({nome:a, p:mapa.percursos[a]}));
   i = 0;
-  construirPalco();
-  aviso();
-  render();
+  construir(); aviso(); render();
 }
 
-function construirPalco(){
+function construir(){
   const palco = $("palco");
   palco.innerHTML = "";
   for (const pista of pistas){
     const caixa = document.createElement("div");
-    caixa.className = "tabuleiro";
+    caixa.className = "pista";
     const rot = document.createElement("div");
-    rot.className = "tab-rot";
+    rot.className = "pista-rot";
     const p = pista.p;
     const medida = pista.nome === "BFS" ? "" : (p.custo !== null ? " · custo " + p.custo : "");
     rot.innerHTML = p.status === "OK"
       ? `<b>${pista.nome}</b> · ${p.n_passos} passos${medida}`
-      : `<b>${pista.nome}</b> · ${p.status.toLowerCase().replace("_"," ")}`;
+      : `<b>${pista.nome}</b> · ${p.status.toLowerCase().replace(/_/g," ")}`;
     const g = document.createElement("div");
     g.className = "grade";
-    g.style.gridTemplateColumns = `repeat(${mapa.colunas}, var(--cel,24px))`;
+    g.style.gridTemplateColumns = `repeat(${mapa.colunas}, var(--cel,30px))`;
     pista.celulas = [];
     for (let l=0;l<mapa.linhas;l++){
-      const linha=[];
+      const linha = [];
       for (let c=0;c<mapa.colunas;c++){
         const ch = mapa.grade[l][c];
         const d = document.createElement("div");
@@ -403,9 +428,7 @@ function construirPalco(){
   }
 }
 
-function maxPassos(){
-  return Math.max(0, ...pistas.map(p => p.p.status === "OK" ? p.p.passos.length - 1 : 0));
-}
+const total = () => Math.max(0, ...pistas.map(p => p.p.status === "OK" ? p.p.passos.length-1 : 0));
 
 function render(){
   const cam = $("camada").value;
@@ -414,19 +437,16 @@ function render(){
   for (const pista of pistas){
     for (const linha of pista.celulas) for (const d of linha)
       d.classList.remove("trilha","aqui","presa","apagada");
-
     if (dentro)
       for (let l=0;l<mapa.linhas;l++) for (let c=0;c<mapa.colunas;c++)
         if (mapa.grade[l][c] !== "#" && !dentro.has(l+","+c))
           pista.celulas[l][c].classList.add("apagada");
-
     if ($("armad").checked)
       for (const [l,c,ch] of mapa.armadilhas)
         if (!cam || ch === cam) pista.celulas[l][c].classList.add("presa");
-
     const passos = pista.p.status === "OK" ? pista.p.passos : [];
     if (!passos.length) continue;
-    const k = Math.min(i, passos.length - 1);
+    const k = Math.min(i, passos.length-1);
     if ($("trilhaOn").checked)
       for (let j=0;j<=k;j++) pista.celulas[passos[j].l][passos[j].c].classList.add("trilha");
     pista.celulas[passos[k].l][passos[k].c].classList.add("aqui");
@@ -435,71 +455,76 @@ function render(){
   const guia = pistas.find(p => p.p.status === "OK");
   if (!guia){
     $("rotulo").textContent = "—";
-    ["chaves","bonus","custo"].forEach(k=>$(k).textContent="—");
-    $("passo").textContent = "—";
+    ["pos","chaves","bonus","custo","passo"].forEach(k=>$(k).textContent="—");
     $("progresso").style.width = "0";
     return;
   }
-  const passos = guia.p.passos;
-  const e = passos[Math.min(i, passos.length-1)];
+  const e = guia.p.passos[Math.min(i, guia.p.passos.length-1)];
   $("rotulo").textContent = e.rotulo;
+  $("pos").textContent = `(${e.l}, ${e.c})`;
   $("chaves").textContent = e.chaves || "—";
   $("bonus").textContent = e.bonus.length ? "{"+e.bonus.join(",")+"}" : "{}";
   $("custo").textContent = guia.nome === "BFS" ? "—" : e.custo;
-  const total = maxPassos();
-  $("passo").textContent = `${Math.min(i,total)} / ${total}`;
-  $("progresso").style.width = (100*Math.min(i,total)/Math.max(1,total))+"%";
+  const t = total();
+  $("passo").textContent = `${Math.min(i,t)} / ${t}`;
+  $("progresso").style.width = (100*Math.min(i,t)/Math.max(1,t))+"%";
 }
 
 function aviso(){
   const p = pistas[0] && pistas[0].p;
-  const caixa = $("aviso");
+  const caixa = $("caixaAviso");
   if (!p || p.status === "OK"){ caixa.innerHTML = ""; return; }
-  if (p.status === "SEM_SOLUCAO")
-    caixa.innerHTML = `<p class="aviso">Sem solução. Nenhum caminho leva deste início até a saída — todos os estados alcançáveis são armadilha.</p>`;
-  if (p.status === "CICLO_NEGATIVO")
-    caixa.innerHTML = `<p class="aviso">Ciclo negativo. Não existe custo mínimo: dá para repetir este ciclo sem parar e o custo cai sem limite.<br><code>${p.ciclo.join("  →  ")}</code></p>`;
-  if (p.status === "RECUSA")
-    caixa.innerHTML = `<p class="aviso">Dijkstra recusou este mapa porque ele tem arco de peso negativo. Use o Bellman-Ford.</p>`;
+  const texto = {
+    SEM_SOLUCAO: "<b>Sem solução.</b> Nenhum caminho leva deste início até a saída. Todos os estados alcançáveis são armadilha.",
+    CICLO_NEGATIVO: "<b>Ciclo negativo.</b> Não existe custo mínimo: dá para repetir este ciclo sem parar e o custo cai sem limite.<br><code>" + (p.ciclo||[]).join(" → ") + "</code>",
+    RECUSA: "<b>Dijkstra recusou.</b> Este mapa tem arco de peso negativo. Use o Bellman-Ford.",
+  }[p.status] || p.status;
+  caixa.innerHTML = `<div class="aviso">${texto}</div>`;
 }
 
-function rodape(){
+function metricas(){
   const m = mapa.metricas;
-  $("rodape").innerHTML = [
-    ["estados", m.ordem], ["arcos", m.tamanho],
-    ["densidade", m.densidade.toFixed(5)],
-    ["teto teórico", m.teto],
-    ["ocupação", m.teto ? (100*m.ordem/m.teto).toFixed(1)+"%" : "—"],
-    ["armadilhas", mapa.armadilhas.length],
+  $("metricas").innerHTML = [
+    ["estados (ordem)", m.ordem], ["arcos (tamanho)", m.tamanho],
+    ["densidade", m.densidade.toFixed(5)], ["teto teórico", m.teto],
+    ["taxa de ocupação", m.teto ? (100*m.ordem/m.teto).toFixed(1)+"%" : "—"],
+    ["estados-armadilha", mapa.armadilhas.length],
     ["camadas", Object.keys(mapa.camadas).length],
-  ].map(([k,v])=>`<span>${k} <b>${v}</b></span>`).join("");
+  ].map(([k,v])=>`<div class="par"><span>${k}</span><span>${v}</span></div>`).join("");
 }
 
 function legenda(){
   const vistos = new Set(mapa.grade.flat());
-  const itens = [["#","parede","--parede"],[".","chão 1","--chao"],[",","lama 3","--lama"],
-                 ["~","água 5","--agua"],["+","bônus −4","--bonus"],["*","fonte −2","--fonte"],
-                 ["S","início","--inicio"],["G","saída","--saida"]];
-  let html = itens.filter(([c])=>vistos.has(c))
+  const base = [["#","parede","--parede"],[".","chão · 1","--chao"],[",","lama · 3","--lama"],
+                ["~","água · 5","--agua"],["+","bônus · −4","--bonus"],["*","fonte · −2","--fonte"],
+                ["S","início","--inicio"],["G","saída","--saida"]];
+  let h = base.filter(([c])=>vistos.has(c))
     .map(([,n,v])=>`<span><i class="sw" style="background:var(${v})"></i>${n}</span>`).join("");
-  if ([...vistos].some(c=>"abcd".includes(c))) html += `<span><i class="sw" style="background:var(--chave)"></i>chave</span>`;
-  if ([...vistos].some(c=>"ABCD".includes(c))) html += `<span><i class="sw" style="background:var(--porta)"></i>porta</span>`;
-  if ([...vistos].some(c=>"><^v".includes(c))) html += `<span><i class="sw" style="background:var(--esteira)"></i>esteira</span>`;
-  html += `<span><i class="sw" style="background:var(--azul)"></i>trilha</span>`;
-  html += `<span><i class="sw" style="box-shadow:inset 0 0 0 2px var(--alerta)"></i>armadilha</span>`;
-  $("legenda").innerHTML = html;
+  const tem = s => [...vistos].some(c=>s.includes(c));
+  if (tem("abcd")) h += `<span><i class="sw" style="background:var(--chave)"></i>chave</span>`;
+  if (tem("ABCD")) h += `<span><i class="sw" style="background:var(--porta)"></i>porta</span>`;
+  if (tem("><^v")) h += `<span><i class="sw" style="background:var(--esteira)"></i>esteira</span>`;
+  h += `<span><i class="sw" style="background:var(--azul)"></i>trilha</span>`;
+  h += `<span><i class="sw" style="box-shadow:inset 0 0 0 2px var(--vermelho)"></i>armadilha</span>`;
+  $("legenda").innerHTML = h;
 }
 
-function ir(n){ const t = maxPassos(); if(!t) return; i = Math.max(0, Math.min(t, n)); render(); }
-function parar(){ tocando=false; clearInterval(timer); $("tocar").innerHTML="&#9654; tocar"; }
+function ir(n){ const t = total(); if(!t) return; i = Math.max(0, Math.min(t, n)); render(); }
+function parar(){
+  tocando = false; clearInterval(timer);
+  $("tocar").innerHTML = "&#9654; tocar";
+  $("tocar").setAttribute("aria-label", "Tocar a animação");
+}
 function tocar(){
-  const t = maxPassos();
-  if (!t) return;
+  const t = total();
+  if (!t || semMovimento()) return;
   if (tocando) return parar();
   if (i >= t) i = 0;
-  tocando = true; $("tocar").innerHTML="&#10073;&#10073; pausar";
+  tocando = true;
+  $("tocar").innerHTML = "&#10073;&#10073; pausar";
+  $("tocar").setAttribute("aria-label", "Pausar a animação");
   clearInterval(timer);
-  timer = setInterval(()=>{ if (i >= maxPassos()) return parar(); i++; render(); },
+  timer = setInterval(()=>{ if (i >= total()) return parar(); i++; render(); },
                       1000/Number($("vel").value));
 }
 
@@ -513,7 +538,7 @@ $("tocar").onclick = tocar;
 $("avancar").onclick = ()=>{parar(); ir(i+1);};
 $("voltar").onclick  = ()=>{parar(); ir(i-1);};
 $("inicio").onclick  = ()=>{parar(); ir(0);};
-$("fim").onclick     = ()=>{parar(); ir(maxPassos());};
+$("fim").onclick     = ()=>{parar(); ir(total());};
 $("vel").oninput = e => { $("velTxt").textContent = e.target.value+"/s"; if (tocando){ parar(); tocar(); } };
 $("zoom").oninput = e => document.documentElement.style.setProperty("--cel", e.target.value+"px");
 $("tema").onclick = () => {
@@ -521,9 +546,14 @@ $("tema").onclick = () => {
   document.documentElement.setAttribute("data-theme", atual === "light" ? "dark" : "light");
 };
 document.addEventListener("keydown", ev=>{
+  if (ev.target.matches("input,select")) return;
   if (ev.key === "ArrowRight"){ parar(); ir(i+1); }
   if (ev.key === "ArrowLeft"){ parar(); ir(i-1); }
   if (ev.key === " "){ ev.preventDefault(); tocar(); }
+});
+window.matchMedia("(prefers-reduced-motion: reduce)").addEventListener("change", e=>{
+  $("tocar").disabled = e.matches;
+  if (e.matches) parar();
 });
 
 montar();
