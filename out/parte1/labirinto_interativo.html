@@ -1028,7 +1028,7 @@ function App(){
   const algs = useMemo(() => Object.keys(mapa.percursos).sort((a, b) => ORDEM_ALG.indexOf(a) - ORDEM_ALG.indexOf(b)), [mapa]);
   const [alg, setAlg] = useState(algs[0]);
   const [comparar, setComparar] = useState(false);
-  const [alg2, setAlg2] = useState(null);
+  const [extras, setExtras] = useState(null);   // algoritmos comparados com o principal (null = todos)
   const [camada, setCamada] = useState("");
   const [verPresas, setVerPresas] = useState(false);
   const [verTrilha, setVerTrilha] = useState(true);
@@ -1043,8 +1043,13 @@ function App(){
   // algoritmo valido para o mapa atual
   const algAtual = algs.includes(alg) ? alg : algs[0];
   const outros = algs.filter(a => a !== algAtual);
-  const alg2Atual = outros.includes(alg2) ? alg2 : (outros.find(a => mapa.percursos[a].status === "OK") || outros[0]);
-  const pistas = [algAtual, ...(comparar && alg2Atual ? [alg2Atual] : [])].filter(Boolean);
+  // comparacao: o principal + ate 2 outros = ate 3 tabuleiros ao mesmo tempo
+  const extrasAtuais = (extras === null ? outros : outros.filter(a => extras.includes(a))).slice(0, 2);
+  const pistas = [algAtual, ...(comparar ? extrasAtuais : [])].filter(Boolean);
+  const alternarExtra = a => setExtras(atual => {
+    const base = atual === null ? outros : atual;
+    return base.includes(a) ? base.filter(x => x !== a) : [...base, a];
+  });
 
   const passosGuia = passosDe(mapa.percursos[algAtual]);
   const ciclo = mapa.percursos[algAtual] && mapa.percursos[algAtual].status === "CICLO_NEGATIVO";
@@ -1064,12 +1069,15 @@ function App(){
   }, [mapa, camada, verPresas]);
 
   // ao trocar mapa: volta ao inicio e ajusta o zoom para caber na tela
+  useEffect(() => { setK(0); setTocando(false); setCamada(""); }, [nomeMapa]);
+  // zoom: tenta por os tabuleiros lado a lado; se ficarem pequenos demais, empilha
   useEffect(() => {
-    setK(0); setTocando(false); setCamada("");
     const largura = palcoRef.current ? palcoRef.current.clientWidth - 48 : 900;
-    const lado = comparar && mapa.colunas <= 30 ? 2 : 1;
-    setCel(Math.max(9, Math.min(36, Math.floor((largura / lado - 24 * (lado - 1)) / mapa.colunas))));
-  }, [nomeMapa, comparar]);
+    const tamanho = lado => Math.floor((largura - 22 * (lado - 1)) / lado / mapa.colunas);
+    let lado = pistas.length;
+    while (lado > 1 && tamanho(lado) < 16) lado--;
+    setCel(Math.max(9, Math.min(36, tamanho(lado))));
+  }, [nomeMapa, pistas.length]);
   useEffect(() => { setK(0); setTocando(false); }, [algAtual]);
   useEffect(() => { document.documentElement.setAttribute("data-theme", tema); }, [tema]);
 
@@ -1181,11 +1189,17 @@ function App(){
         </div>
         <label className="alternar" style=${{marginLeft:".4rem"}}>
           <input type="checkbox" checked=${comparar} onChange=${e => setComparar(e.target.checked)} disabled=${outros.length === 0}/> comparar lado a lado</label>
-        ${comparar && outros.length > 0 && html`
-          <select className="seletor" value=${alg2Atual} onChange=${e => setAlg2(e.target.value)} aria-label="Segundo algoritmo">
-            ${outros.map(a => html`<option key=${a} value=${a}>${INFO_ALG[a] ? INFO_ALG[a].nome : a}</option>`)}
-          </select>`}
       </div>
+      ${comparar && outros.length > 0 && html`
+      <div className="linha-sel">
+        <span className="rot-sel">Comparar com</span>
+        <div className="fichas" role="group" aria-label="Algoritmos comparados">
+          ${outros.map(a => html`<button key=${a} className="ficha" aria-pressed=${extrasAtuais.includes(a)} onClick=${() => alternarExtra(a)}>
+              <span className="bolinha" style=${{background:COR_STATUS[mapa.percursos[a].status]}}></span>
+              ${INFO_ALG[a] ? INFO_ALG[a].nome : a}</button>`)}
+        </div>
+        <span className="dica" style=${{marginLeft:0}}>${pistas.length} de até 3 tabuleiros</span>
+      </div>`}
       <div className="linha-sel">
         <span className="rot-sel">Camada</span>
         <div className="fichas" role="group" aria-label="Camada">
