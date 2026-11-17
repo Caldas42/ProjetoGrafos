@@ -110,26 +110,36 @@ def bellman_ford(grafo, v0):
 # print("ciclo negativo:", bellman_ford(grafo_ciclo, "A")[2])
 
 def dijkstra(grafo, origem):
+    for u in grafo:
+        for v, peso in grafo[u]:
+            if peso < 0:
+                raise ValueError(
+                    f"Dijkstra recusado: o arco {u!r} -> {v!r} tem peso negativo ({peso}). "
+                    f"Use o Bellman-Ford para grafos com pesos negativos."
+                )
 
     d = {v: float("inf") for v in grafo}
     anterior = {v: None for v in grafo}
     visitado = {v: False for v in grafo}
 
     d[origem] = 0
-    fila = [(0, origem)]  
+    contador = 0
+    fila = [(0, contador, origem)]
 
     while fila:
-        dist_u, u = heapq.heappop(fila)
+        dist_u, _, u = heapq.heappop(fila)
 
         if visitado[u]:
-            continue  
+            continue
         visitado[u] = True
 
-        for v, peso in grafo[u]:
-            if d[v] > d[u] + peso:
-                d[v] = d[u] + peso
+        for v, peso in grafo.get(u, []):
+            if d.get(v, float("inf")) > dist_u + peso:
+                d[v] = dist_u + peso
                 anterior[v] = u
-                heapq.heappush(fila, (d[v], v))
+                contador += 1
+                heapq.heappush(fila, (d[v], contador, v))
+            visitado.setdefault(v, False)
 
     return d, anterior
 
