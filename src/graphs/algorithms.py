@@ -83,6 +83,7 @@ def tem_ciclo(grafo, v0):
 
 INF = float("inf")
 
+# [IA] Claude Code – pseudocodigo de referencia e conferencia dos resultados (codigo escrito pelo integrante)
 def bellman_ford(grafo, v0):
     d = {}
     p = {}
