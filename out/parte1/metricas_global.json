@@ -235,5 +235,34 @@
     "multiplicidade_maxima": 8,
     "casas_com_multiplicidade_maxima": 33,
     "estados_armadilha": 0
+  },
+  "g02_porao": {
+    "g_pos": {
+      "ordem": 50,
+      "tamanho": 97,
+      "densidade": 0.039592
+    },
+    "g_est": {
+      "ordem": 95,
+      "tamanho": 186,
+      "densidade": 0.020395
+    },
+    "teto_teorico": 100,
+    "taxa_de_ocupacao": 0.95,
+    "maior_grau_saida": {
+      "estado": "(3,14)|-|{}",
+      "grau": 3
+    },
+    "maior_grau_entrada": {
+      "estado": "(3,15)|a|{}",
+      "grau": 3
+    },
+    "becos": [
+      "(5,7)|-|{}",
+      "(5,7)|a|{}"
+    ],
+    "multiplicidade_maxima": 2,
+    "casas_com_multiplicidade_maxima": 45,
+    "estados_armadilha": 36
   }
 }

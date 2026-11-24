@@ -426,5 +426,30 @@
         ]
       }
     ]
+  },
+  "g02_porao": {
+    "camadas": {
+      "-": {
+        "ordem": 45,
+        "tamanho": 87,
+        "densidade": 0.043939
+      },
+      "a": {
+        "ordem": 50,
+        "tamanho": 97,
+        "densidade": 0.039592
+      }
+    },
+    "arcos_entre_camadas": 1,
+    "arcos": [
+      {
+        "origem": "(3,14)|-|{}",
+        "destino": "(3,15)|a|{}",
+        "casa": [
+          3,
+          15
+        ]
+      }
+    ]
   }
 }

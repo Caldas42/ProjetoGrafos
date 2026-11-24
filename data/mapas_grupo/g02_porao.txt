@@ -1,0 +1,12 @@
+; g02_porao - mapa 2 do grupo, o mapa armadilha
+; As tres esteiras 'v' do meio derrubam o jogador num porao sem saida:
+; de la so se sobe pelas proprias esteiras, que so permitem descer.
+; A esteira '^' do porao aponta para parede, um beco dentro do beco.
+; A porta A obriga a buscar a chave antes de ir para a saida.
+#################
+#S....,,,....A.G#
+#.#############.#
+#......~~~.....a#
+####v####v####v##
+#......^........#
+#################
