@@ -152,7 +152,7 @@ def main(argv=None):
     print(f"\nlabirinto interativo em {endereco}")
     print("use o botao 'Carregar mapa' na Parte 1. Ctrl+C para desligar.\n")
     if not args.sem_navegador:
-        threading.Timer(0.6, lambda: webbrowser.open(endereco + "#parte1")).start()
+        threading.Timer(0.6, lambda: webbrowser.open(endereco)).start()
     try:
         http.serve_forever()
     except KeyboardInterrupt:

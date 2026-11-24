@@ -479,8 +479,15 @@ function Pista({mapa, alg, k, dentro, presas, mostrarTrilha, idxBonus, dur}){
 
 // ------------------------------------------------------------------ app
 function Parte1({tema, setTema, aoVoltar, servidor}){
-  const nomes = Object.keys(DADOS).sort();
-  const [nomeMapa, setNomeMapa] = useState(nomes.includes("m03_tres_chaves") ? "m03_tres_chaves" : nomes[0]);
+  const nomes = Object.keys(DADOS).sort((a, b) => {
+    const grupoA = a.startsWith("g");
+    const grupoB = b.startsWith("g");
+
+    if (grupoA !== grupoB) return grupoA ? 1 : -1;
+
+    return a.localeCompare(b);
+  });
+  const [nomeMapa, setNomeMapa] = useState(nomes.includes("m01_terreno") ? "m01_terreno" : nomes[0]);
   // upload de mapa novo: so existe rodando "python -m src.servidor" (o Python calcula, a pagina so desenha)
   const [carga, setCarga] = useState(null);   // {tipo:"ok"|"erro"|"carregando", txt}
   const entradaRef = useRef(null);
