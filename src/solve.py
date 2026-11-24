@@ -220,6 +220,47 @@ def comparacao_modelagem(grade):
     return resultado
 
 
+# [IA] Claude Code – saidas de BF: m05 no G_pos x G_est e m06 com fonte consumivel
+def _custo_ciclo(grafo, ciclo):
+    peso = {(u, v): p for u in grafo for v, p in grafo[u]}
+    return sum(peso[(ciclo[i], ciclo[i + 1])] for i in range(len(ciclo) - 1))
+
+
+def _resumo_bf_est(grade, grafo):
+    custo, pais, ciclo = bellman_ford(grafo, estado_inicial(grade))
+    if ciclo:
+        return {"status": "CICLO_NEGATIVO", "custo_do_ciclo": _custo_ciclo(grafo, ciclo),
+                "ciclo": [rotular(e) for e in ciclo], "estados": gr.ordem(grafo) - 1}
+    if custo.get(ALVO, INF) == INF:
+        return {"status": "SEM_SOLUCAO", "estados": gr.ordem(grafo) - 1}
+    caminho = [e for e in caminho_ate(pais, ALVO) if e != ALVO]
+    return {"status": "OK", "custo": custo[ALVO], "passos": len(caminho) - 1,
+            "estados": gr.ordem(grafo) - 1, "caminho": [rotular(e) for e in caminho]}
+
+
+def prova_m05(nome, grade, grafo):
+    pos = construir_g_pos(grade)
+    _, _, ciclo = bellman_ford(pos, achar_inicio(grade))
+    g_pos = {"status": "CICLO_NEGATIVO" if ciclo else "SEM_CICLO",
+             "regra": "'+' vale -4 fixo, toda vez que se entra na casa",
+             "ordem": gr.ordem(pos)}
+    if ciclo:
+        g_pos["custo_do_ciclo"] = _custo_ciclo(pos, ciclo)
+        g_pos["ciclo"] = [rotular(e) for e in ciclo]
+    g_est = _resumo_bf_est(grade, grafo)
+    g_est["regra"] = "cada '+' vale -4 so na primeira visita (bonus guardado no estado)"
+    return {"mapa": nome, "algoritmo": "BELLMAN_FORD", "g_pos": g_pos, "g_est": g_est}
+
+
+def fonte_m06(nome, grade, grafo):
+    infinita = _resumo_bf_est(grade, grafo)
+    infinita["regra"] = "'*' vale -2 sempre (fonte infinita)"
+    consumivel = _resumo_bf_est(grade, construir_g_est(grade, fonte="consumivel"))
+    consumivel["regra"] = "'*' vale -2 so na primeira vez (--fonte-consumivel)"
+    return {"mapa": nome, "algoritmo": "BELLMAN_FORD",
+            "fonte_infinita": infinita, "fonte_consumivel": consumivel}
+
+
 def gerar(pasta="out/parte1"):
     os.makedirs(pasta, exist_ok=True)
     metricas, camadas, solucoes, dfs_linhas, comparacao = {}, {}, [], [], []
@@ -280,6 +321,12 @@ def gerar(pasta="out/parte1"):
                 "custo_do_ciclo": soma,
                 "ciclo": [rotular(e) for e in ciclo] if ciclo else [],
             }))
+            gerados.append(escrever_json(os.path.join(pasta, "m06_fonte_consumivel.json"),
+                                         fonte_m06(nome, grade, grafo)))
+
+        if nome.startswith("m05"):
+            gerados.append(escrever_json(os.path.join(pasta, "m05_gpos_vs_gest.json"),
+                                         prova_m05(nome, grade, grafo)))
 
     gerados.append(escrever_json(os.path.join(pasta, "metricas_global.json"), metricas))
     gerados.append(escrever_json(os.path.join(pasta, "camadas.json"), camadas))

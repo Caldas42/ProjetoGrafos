@@ -115,6 +115,39 @@ def comando_algoritmo(grafo, grade, nome, fonte, mostrar_caminho):
     return 0
 
 
+# [IA] Claude Code – rodar um algoritmo no G_pos (prova do m05)
+def comando_algoritmo_gpos(grade, nome):
+    """Roda o algoritmo no grafo de posicoes, a partir de S. Nao ha ALVO aqui."""
+    from src.graphs.io import achar_inicio, achar_saida
+    if nome not in ALGORITMOS or nome == "DFS":
+        print(f"  {nome}: use BFS, DIJKSTRA ou BELLMAN_FORD com --gpos", file=sys.stderr)
+        return 1
+    pos = construir_g_pos(grade)
+    inicio = achar_inicio(grade)
+    _cabecalho(f"{nome} no G_pos")
+    try:
+        resultado = ALGORITMOS[nome](pos, inicio)
+    except ValueError as erro:
+        print("  status  RECUSA")
+        print(f"  motivo  {erro}")
+        return 0
+    dist, ciclo = resultado[0], (resultado[2] if len(resultado) > 2 else None)
+    if ciclo:
+        peso = {(u, v): w for u in pos for v, w in pos[u]}
+        soma = sum(peso[(ciclo[i], ciclo[i + 1])] for i in range(len(ciclo) - 1))
+        print("  status  CICLO_NEGATIVO")
+        print("  ciclo  ", " -> ".join(rotular(e) for e in ciclo), f"(custo {soma})")
+        return 0
+    saidas = [s for s in achar_saida(grade) if dist.get(s, INF) != INF]
+    if not saidas:
+        print("  status  SEM_SOLUCAO")
+        return 0
+    melhor = min(saidas, key=lambda s: dist[s])
+    print("  status  OK")
+    print(f"  {'passos' if nome == 'BFS' else 'custo '}  {dist[melhor]}")
+    return 0
+
+
 def comando_armadilhas(grafo):
     _cabecalho("Estados-armadilha")
     if "BELLMAN_FORD" not in ALGORITMOS and "BFS" not in ALGORITMOS:
@@ -159,6 +192,11 @@ def main(argv=None):
                    help="algoritmo a rodar")
     p.add_argument("--fonte", choices=["infinita", "consumivel"], default="infinita",
                    help="tratamento da fonte '*' (padrao: infinita)")
+    # [IA] Claude Code – opcao --fonte-consumivel (nome do enunciado) e --gpos
+    p.add_argument("--fonte-consumivel", dest="fonte", action="store_const", const="consumivel",
+                   help="correcao do m06: a fonte '*' vale -2 so na primeira vez")
+    p.add_argument("--gpos", action="store_true",
+                   help="rodar o algoritmo no grafo de posicoes (G_pos), com '+' valendo -4 fixo")
     p.add_argument("--armadilhas", action="store_true",
                    help="listar os estados-armadilha")
     p.add_argument("--graus", action="store_true",
@@ -218,7 +256,9 @@ def main(argv=None):
         grafo = construir_g_est(grade, fonte=args.fonte)
 
     codigo = 0
-    if args.alg:
+    if args.alg and args.gpos:
+        codigo |= comando_algoritmo_gpos(grade, args.alg)
+    elif args.alg:
         codigo |= comando_algoritmo(grafo, grade, args.alg, args.fonte, args.caminho)
     if args.graus:
         codigo |= comando_graus(grafo)
