@@ -1,6 +1,7 @@
 import argparse
 import os
 import sys
+from src.graphs.algorithms import classificar_arcos
 
 from src.graphs import graph as gr
 from src.graphs.estados import (
@@ -80,7 +81,19 @@ def comando_algoritmo(grafo, grade, nome, fonte, mostrar_caminho):
     if nome == "DFS":
         resultado = ALGORITMOS[nome](grafo, inicio)
         visitados = sum(1 for v in resultado[0].values() if v == "ENCERRADO")
+
+        tipos = {"arvore": 0, "retorno": 0, "avanco": 0, "cruzamento": 0}
+
+        for _, _, tipo in classificar_arcos(grafo, inicio):
+            tipos[tipo] += 1
+
         print(f"  visitou {visitados} de {gr.ordem(grafo)} vertices")
+        print(f"  arcos de arvore: {tipos['arvore']}")
+        print(f"  arcos de retorno: {tipos['retorno']}")
+        print(f"  arcos de avanco: {tipos['avanco']}")
+        print(f"  arcos de cruzamento: {tipos['cruzamento']}")
+        print(f"  possui ciclo: {'SIM' if tipos['retorno'] > 0 else 'NAO'}")
+
         return 0
 
     try:
@@ -94,8 +107,13 @@ def comando_algoritmo(grafo, grade, nome, fonte, mostrar_caminho):
     ciclo = resultado[2] if len(resultado) > 2 else None
 
     if ciclo:
+        peso = {(u, v): p for u in grafo for v, p in grafo[u]}
+        soma = sum(peso[(ciclo[i], ciclo[i + 1])]
+                   for i in range(len(ciclo) - 1))
+
         print("  status  CICLO_NEGATIVO")
         print("  ciclo  ", " -> ".join(rotular(e) for e in ciclo))
+        print(f"  custo do ciclo: {soma}")
         return 0
 
     if dist.get(ALVO, INF) == INF:
