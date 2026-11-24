@@ -225,9 +225,10 @@ const {useState, useEffect, useMemo, useRef, memo} = React;
 const html = htm.bind(React.createElement);
 
 // ------------------------------------------------------------------ constantes
-const ORDEM_ALG = ["BFS", "DIJKSTRA", "BELLMAN_FORD"];
+const ORDEM_ALG = ["BFS", "DFS", "DIJKSTRA", "BELLMAN_FORD"];
 const INFO_ALG = {
   BFS:          {nome:"BFS",          ideia:"menor número de passos"},
+  DFS:          {nome:"DFS",          ideia:"busca em profundidade"},
   DIJKSTRA:     {nome:"Dijkstra",     ideia:"menor custo (só pesos ≥ 0)"},
   BELLMAN_FORD: {nome:"Bellman-Ford", ideia:"menor custo, aceita pesos negativos"},
 };
@@ -430,7 +431,7 @@ function App(){
   const algAtual = algs.includes(alg) ? alg : algs[0];
   const outros = algs.filter(a => a !== algAtual);
   // comparacao: o principal + ate 2 outros = ate 3 tabuleiros ao mesmo tempo
-  const extrasAtuais = (extras === null ? outros : outros.filter(a => extras.includes(a))).slice(0, 2);
+  const extrasAtuais = (extras === null ? outros : outros.filter(a => extras.includes(a))).slice(0, 3);
   const pistas = [algAtual, ...(comparar ? extrasAtuais : [])].filter(Boolean);
   const alternarExtra = a => setExtras(atual => {
     const base = atual === null ? outros : atual;
@@ -584,7 +585,7 @@ function App(){
               <span className="bolinha" style=${{background:COR_STATUS[mapa.percursos[a].status]}}></span>
               ${INFO_ALG[a] ? INFO_ALG[a].nome : a}</button>`)}
         </div>
-        <span className="dica" style=${{marginLeft:0}}>${pistas.length} de até 3 tabuleiros</span>
+        <span className="dica" style=${{marginLeft:0}}>${pistas.length} de até 4 tabuleiros</span>
       </div>`}
       <div className="linha-sel">
         <span className="rot-sel">Camada</span>
@@ -648,7 +649,7 @@ function App(){
             <span>${nBonus ? (estado ? (estado.bonus.length ? "{" + estado.bonus.join(",") + "}" : "{}") + " de " + nBonus : "—") : html`<span className="vazio">mapa sem bônus</span>`}</span></div>
           <div className="custo-grande">
             <strong>${!ciclo && custos.length ? fmt(custos[kGuia]) : "—"}</strong>
-            <span>custo acumulado${algAtual === "BFS" ? " (pelo terreno)" : ""}</span>
+            <span>${algAtual === "DFS" ? "custo não calculado pela DFS" : "custo acumulado" + (algAtual === "BFS" ? " (pelo terreno)" : "")}</span>
             ${delta !== null && !ciclo && html`<span className=${"delta " + (delta < 0 ? "neg" : "pos")}>${delta > 0 ? "+" : ""}${delta}</span>`}
           </div>
         </div>

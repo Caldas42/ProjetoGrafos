@@ -21,7 +21,7 @@ VISITADO = "VISITADO"
 ENCERRADO = "ENCERRADO"
 
 
-def dfs_completa(grafo, v0):
+def dfs_completa(grafo, v0): #d
     estado = {v: NAO_VISITADO for v in grafo}
     pais = {v: None for v in grafo}
     descoberta = {}
@@ -69,6 +69,33 @@ def dfs(grafo, v0):
     estado, pais, descoberta, _, _ = dfs_completa(grafo, v0)
     return estado, pais, descoberta
 
+def dfs_distancias(grafo, v0): #d
+    estado, pais, _, _, _ = dfs_completa(grafo, v0)
+
+    distancias = {v0: 0}
+
+    for v in grafo:
+        if estado[v] == NAO_VISITADO or v == v0:
+            continue
+
+        atual = v
+        caminho = []
+
+        while pais[atual] is not None:
+            caminho.append((pais[atual], atual))
+            atual = pais[atual]
+
+        custo = 0
+
+        for u, destino in reversed(caminho):
+            for vizinho, peso in grafo[u]:
+                if vizinho == destino:
+                    custo += peso
+                    break
+
+        distancias[v] = custo
+
+    return distancias, pais
 
 def classificar_arcos(grafo, v0):
     return dfs_completa(grafo, v0)[4]

@@ -56,6 +56,11 @@ try:
 except ImportError:
     pass
 
+try:
+    from src.graphs.algorithms import dfs_distancias
+    ALGORITMOS["DFS"] = dfs_distancias
+except ImportError:
+    pass
 
 def _reconstruir(pais, destino):
     """Caminho do inicio ate `destino`, andando de tras pra frente pelo pai."""
