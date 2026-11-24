@@ -73,6 +73,8 @@ def arestas_csv(nome, grade, grafo, pasta):
 
 
 def graus_csv(nome, grafo, pasta):
+    grafo = gr.subgrafo_induzido(grafo, [n for n in grafo if n != ALVO])
+    
     entrada = gr.graus_entrada(grafo)
     linhas = [[rotular(e), entrada.get(e, 0), gr.grau_saida(grafo, e)]
               for e in sorted(grafo, key=rotular)]
