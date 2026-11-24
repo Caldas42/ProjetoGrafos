@@ -1,5 +1,4 @@
 import csv
-import gzip
 
 CHAVES_VALIDAS = {"a", "b", "c", "d"}
 PORTAS_VALIDAS = {"A", "B", "C", "D"}
@@ -139,7 +138,7 @@ def validar_mapa(grade):
 def ler_dataset_bitcoin_alpha(caminho):
     arestas = []
 
-    with gzip.open(caminho, "rt", encoding="utf-8") as arquivo:
+    with open(caminho, "r", encoding="utf-8") as arquivo:
         leitor = csv.reader(arquivo)
 
         for numero_linha, linha in enumerate(leitor, start=1):
