@@ -174,11 +174,16 @@ def comando_armadilhas(grafo):
 
 def comando_graus(grafo):
     _cabecalho("Graus")
+    becos = [n for n in grafo if n != ALVO and gr.grau_saida(grafo, n) == 0]
+
+    grafo = gr.subgrafo_induzido(grafo, [n for n in grafo if n != ALVO])
+
     entrada = gr.graus_entrada(grafo)
     saida = {n: gr.grau_saida(grafo, n) for n in grafo}
-    maior_s = max((n for n in grafo if n != ALVO), key=lambda n: (saida[n], ))
-    maior_e = max((n for n in grafo if n != ALVO), key=lambda n: (entrada[n], ))
-    becos = [n for n in grafo if n != ALVO and saida[n] == 0]
+
+    maior_s = min(grafo, key=lambda n: (-saida[n], rotular(n)))
+    maior_e = min(grafo, key=lambda n: (-entrada[n], rotular(n)))
+
     print(f"  maior grau de saida   {rotular(maior_s)}  ({saida[maior_s]})")
     print(f"  maior grau de entrada {rotular(maior_e)}  ({entrada[maior_e]})")
     print(f"  estados sem saida     {len(becos)}")

@@ -122,22 +122,35 @@ def camadas_do_mapa(grafo):
 
 
 def graus_extremos(grafo):
+    becos = [rotular(e) for e in grafo
+             if e != ALVO and gr.grau_saida(grafo, e) == 0]
+
+    grafo = gr.subgrafo_induzido(grafo, [n for n in grafo if n != ALVO])
+
     entrada = gr.graus_entrada(grafo)
-    estados = [e for e in grafo if e != ALVO]
+    estados = list(grafo)
+
     if not estados:
         return {}
+
     maior_saida = min(estados, key=lambda e: (-gr.grau_saida(grafo, e), rotular(e)))
     maior_entrada = min(estados, key=lambda e: (-entrada.get(e, 0), rotular(e)))
-    becos = [rotular(e) for e in estados if gr.grau_saida(grafo, e) == 0]
+
     casas = {}
     for e in estados:
         casas[(e[0], e[1])] = casas.get((e[0], e[1]), 0) + 1
+
     maximo = max(casas.values())
+
     return {
-        "maior_grau_saida": {"estado": rotular(maior_saida),
-                             "grau": gr.grau_saida(grafo, maior_saida)},
-        "maior_grau_entrada": {"estado": rotular(maior_entrada),
-                               "grau": entrada.get(maior_entrada, 0)},
+        "maior_grau_saida": {
+            "estado": rotular(maior_saida),
+            "grau": gr.grau_saida(grafo, maior_saida)
+        },
+        "maior_grau_entrada": {
+            "estado": rotular(maior_entrada),
+            "grau": entrada.get(maior_entrada, 0)
+        },
         "becos": becos,
         "multiplicidade_maxima": maximo,
         "casas_com_multiplicidade_maxima": sum(1 for v in casas.values() if v == maximo),
