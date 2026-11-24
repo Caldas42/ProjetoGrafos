@@ -517,6 +517,15 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   .sw{width:.9rem;height:.9rem;border-radius:4px;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
   .legenda .titulo{grid-column:1/-1;font-size:.7rem;color:var(--txt3);margin-top:.3rem}
 
+  /* ---------- upload de mapa (modo servidor) ---------- */
+  .icone.carregar{margin-left:0;cursor:pointer;color:var(--txt);border-color:var(--acento)}
+  .faixa-carga{flex:none;display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.45rem .8rem;
+               border-radius:10px;border:1px solid;font-size:.85rem}
+  .faixa-carga.ok{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 40%,transparent);background:color-mix(in srgb,var(--ok) 8%,transparent)}
+  .faixa-carga.erro{color:var(--erro);border-color:color-mix(in srgb,var(--erro) 40%,transparent);background:color-mix(in srgb,var(--erro) 8%,transparent)}
+  .faixa-carga.carregando{color:var(--txt2);border-color:var(--linha)}
+  .faixa-carga button{background:none;border:0;font-size:1.1rem;line-height:1;color:inherit}
+
   /* ---------- home ---------- */
   .icone.voltar{margin-left:0}
   .home{min-height:100vh;display:flex;flex-direction:column;padding:1rem}
@@ -1061,9 +1070,29 @@ function Pista({mapa, alg, k, dentro, presas, mostrarTrilha, idxBonus, dur}){
 }
 
 // ------------------------------------------------------------------ app
-function Parte1({tema, setTema, aoVoltar}){
+function Parte1({tema, setTema, aoVoltar, servidor}){
   const nomes = Object.keys(DADOS).sort();
   const [nomeMapa, setNomeMapa] = useState(nomes.includes("m03_tres_chaves") ? "m03_tres_chaves" : nomes[0]);
+  // upload de mapa novo: so existe rodando "python -m src.servidor" (o Python calcula, a pagina so desenha)
+  const [carga, setCarga] = useState(null);   // {tipo:"ok"|"erro"|"carregando", txt}
+  const entradaRef = useRef(null);
+  const carregarMapa = async arquivo => {
+    if (!arquivo) return;
+    setCarga({tipo:"carregando", txt:"calculando " + arquivo.name + "…"});
+    try {
+      const texto = await arquivo.text();
+      const r = await fetch("api/mapa", {method:"POST", headers:{"Content-Type":"application/json"},
+                                          body:JSON.stringify({nome:arquivo.name, texto})});
+      const info = await r.json();
+      if (!r.ok) throw new Error(info.erro || ("erro " + r.status));
+      DADOS[info.nome] = info;
+      setNomeMapa(info.nome);
+      setCarga({tipo:"ok", txt:"mapa " + info.nome + " carregado (" + info.linhas + "×" + info.colunas + ")"});
+    } catch (e) {
+      setCarga({tipo:"erro", txt:arquivo.name + ": " + e.message});
+    }
+    if (entradaRef.current) entradaRef.current.value = "";
+  };
   const mapa = DADOS[nomeMapa];
   const algs = useMemo(() => Object.keys(mapa.percursos).sort((a, b) => ORDEM_ALG.indexOf(a) - ORDEM_ALG.indexOf(b)), [mapa]);
   const [alg, setAlg] = useState(algs[0]);
@@ -1131,7 +1160,7 @@ function Parte1({tema, setTema, aoVoltar}){
     const ro = window.ResizeObserver ? new ResizeObserver(ajustar) : null;
     if (ro) ro.observe(el);
     return () => { if (ro) ro.disconnect(); };
-  }, [nomeMapa, pistas.length]);
+  }, [mapa, pistas.length]);
   useEffect(() => { setK(0); setTocando(false); }, [algAtual]);
 
   // animacao
@@ -1221,8 +1250,12 @@ function Parte1({tema, setTema, aoVoltar}){
       </div>
       <label className="grupo"><span className="rot-sel">Mapa</span>
         <select className="seletor" value=${nomeMapa} onChange=${e => setNomeMapa(e.target.value)} aria-label="Mapa">
-          ${nomes.map(n => html`<option key=${n} value=${n}>${n.replace(/^([mg]\d+)_/, "$1 · ").replace(/_/g, " ")} (${DADOS[n].linhas}×${DADOS[n].colunas})</option>`)}
+          ${nomes.map(n => html`<option key=${n} value=${n}>${DADOS[n].enviado ? "★ " : ""}${n.replace(/^([mg]\d+)_/, "$1 · ").replace(/_/g, " ")} (${DADOS[n].linhas}×${DADOS[n].colunas})</option>`)}
         </select></label>
+      ${servidor && html`
+      <label className="icone carregar" title="Enviar um mapa .txt novo; o Python do grupo calcula e a página mostra">
+        <input ref=${entradaRef} type="file" accept=".txt,text/plain" hidden onChange=${e => carregarMapa(e.target.files[0])}/>
+        ⤒ Carregar mapa</label>`}
       <div className="grupo"><span className="rot-sel">Algoritmo</span>
         <div className="fichas" role="group" aria-label="Algoritmo">
           ${algs.map(a => html`<button key=${a} className="ficha" aria-pressed=${a === algAtual} onClick=${() => setAlg(a)}
@@ -1249,6 +1282,12 @@ function Parte1({tema, setTema, aoVoltar}){
       <button className="icone" onClick=${() => setTema(t => t === "light" ? "dark" : "light")}
         aria-label="Alternar tema claro/escuro">${tema === "light" ? "☾ escuro" : "☀ claro"}</button>
     </header>
+
+    ${carga && html`
+    <div className=${"faixa-carga " + carga.tipo} role="status">
+      <span>${carga.tipo === "erro" ? "Mapa recusado — " : ""}${carga.txt}</span>
+      ${carga.tipo !== "carregando" && html`<button onClick=${() => setCarga(null)} aria-label="Fechar aviso">×</button>`}
+    </div>`}
 
     <div className="grelha">
       <div className="cartao">
@@ -1363,7 +1402,7 @@ const BotaoTema = ({tema, setTema}) => html`
   <button className="icone" onClick=${() => setTema(t => t === "light" ? "dark" : "light")}
     aria-label="Alternar tema claro/escuro">${tema === "light" ? "☾ escuro" : "☀ claro"}</button>`;
 
-function Inicio({ir, tema, setTema}){
+function Inicio({ir, tema, setTema, servidor}){
   const nMapas = Object.keys(DADOS).length;
   const algs = [...new Set(Object.values(DADOS).flatMap(m => Object.keys(m.percursos)))]
     .sort((a, b) => ORDEM_ALG.indexOf(a) - ORDEM_ALG.indexOf(b));
@@ -1384,6 +1423,7 @@ function Inicio({ir, tema, setTema}){
           <ul>
             <li><b>${nMapas}</b> mapas</li>
             <li><b>${algs.length}</b> algoritmos: ${algs.map(a => INFO_ALG[a] ? INFO_ALG[a].nome : a).join(", ")}</li>
+            ${servidor && html`<li><span className="etiqueta ok">dá para carregar mapas novos</span></li>`}
           </ul>
           <span className="home-ir">abrir →</span>
         </button>
@@ -1428,6 +1468,12 @@ function Raiz(){
   const [tema, setTema] = useState(() =>
     window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
   useEffect(() => { document.documentElement.setAttribute("data-theme", tema); }, [tema]);
+  // aberta pelo "python -m src.servidor"? entao da para carregar mapas novos
+  const [servidor, setServidor] = useState(false);
+  useEffect(() => {
+    if (!/^https?:$/.test(location.protocol)) return;
+    fetch("api/ping").then(r => r.ok ? r.json() : null).then(j => setServidor(!!(j && j.ok))).catch(() => {});
+  }, []);
   useEffect(() => {
     const f = () => setTela(ler());
     window.addEventListener("hashchange", f);
@@ -1435,9 +1481,9 @@ function Raiz(){
   }, []);
   const ir = t => { location.hash = t; };
   const voltar = () => { history.pushState(null, "", location.pathname); setTela(""); };
-  if (tela === "parte1") return html`<${Parte1} tema=${tema} setTema=${setTema} aoVoltar=${voltar}/>`;
+  if (tela === "parte1") return html`<${Parte1} tema=${tema} setTema=${setTema} aoVoltar=${voltar} servidor=${servidor}/>`;
   if (tela === "parte2") return html`<${Parte2} tema=${tema} setTema=${setTema} aoVoltar=${voltar}/>`;
-  return html`<${Inicio} ir=${ir} tema=${tema} setTema=${setTema}/>`;
+  return html`<${Inicio} ir=${ir} tema=${tema} setTema=${setTema} servidor=${servidor}/>`;
 }
 
 ReactDOM.createRoot(document.getElementById("app")).render(html`<${Raiz}/>`);

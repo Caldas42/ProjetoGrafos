@@ -52,6 +52,28 @@ python -m src.cli --figuras     --out ./out/parte1/
 python -m src.viz                                    # html + figuras de uma vez
 ```
 
+## Testar um mapa novo
+
+**Pelo terminal** (qualquer arquivo `.txt`):
+
+```bash
+python -m src.cli --mapa caminho/do/mapa_novo.txt --alg BFS
+python -m src.cli --mapa caminho/do/mapa_novo.txt --alg BELLMAN_FORD --caminho
+```
+
+**Pela página, com upload:**
+
+```bash
+python -m src.servidor          # abre http://127.0.0.1:8765 no navegador
+```
+
+Na Parte 1, use o botão **Carregar mapa** e escolha o `.txt`. O servidor roda localmente
+(na própria máquina, sem internet) e calcula o mapa com o mesmo código do CLI
+(`io.py`, `estados.py`, `algorithms.py`); a página só desenha o resultado. Mapas inválidos
+são recusados com a mensagem de validação. Os mapas enviados ficam em
+`out/parte1/mapas_enviados/`. Abrindo o `labirinto_interativo.html` direto (dois cliques),
+a página funciona normalmente, mas sem o botão de upload.
+
 ## Testes
 
 ```bash

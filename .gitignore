@@ -8,3 +8,6 @@ env/
 .DS_Store
 .vscode/
 .idea/
+
+# mapas enviados pela pagina (python -m src.servidor)
+out/parte1/mapas_enviados/
