@@ -8,6 +8,9 @@ import os
 
 import pytest
 
+# [IA] Claude Code - validador dos requisitos da Secao 10 e o mapa g02_porao;
+# os valores esperados foram conferidos pelo grupo rodando o proprio codigo
+
 from src.graphs import graph as gr
 from src.graphs.algorithms import bellman_ford, bfs, dijkstra
 from src.graphs.estados import ALVO, construir_g_est, estado_inicial
