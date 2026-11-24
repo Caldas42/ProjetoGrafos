@@ -82,13 +82,15 @@ def graus_csv(nome, grafo, pasta):
 
 def metricas_do_mapa(grade, grafo):
     pos = construir_g_pos(grade)
-    ordem = gr.ordem(grafo) - 1
+    # [IA] Claude Code – correção de bug (metricas do G_est sem o no ALVO e sem os arcos que chegam nele)
+    sem_alvo = gr.subgrafo_induzido(grafo, [n for n in grafo if n != ALVO])
+    ordem = gr.ordem(sem_alvo)
     teto = teto_teorico(grade)
     return {
         "g_pos": {"ordem": gr.ordem(pos), "tamanho": gr.tamanho(pos),
                   "densidade": round(gr.densidade(pos), 6)},
-        "g_est": {"ordem": ordem, "tamanho": gr.tamanho(grafo),
-                  "densidade": round(gr.densidade(grafo), 6)},
+        "g_est": {"ordem": ordem, "tamanho": gr.tamanho(sem_alvo),
+                  "densidade": round(gr.densidade(sem_alvo), 6)},
         "teto_teorico": teto,
         "taxa_de_ocupacao": round(ordem / teto, 6) if teto else 0,
     }

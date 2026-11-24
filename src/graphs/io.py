@@ -25,7 +25,8 @@ def ler_mapa(mapa):
     with open(mapa) as arquivo:
         for linha in arquivo:
                  
-                if not linha.startswith(";"):
+                # [IA] Claude Code – correção de bug (ignorar linhas em branco, como as de comentario ";")
+                if not linha.startswith(";") and linha.strip():
                         linhas.append(linha.strip())
                
         

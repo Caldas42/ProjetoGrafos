@@ -58,12 +58,14 @@ def comando_metricas(grade, fonte):
     grafo = construir_g_est(grade, fonte=fonte)
     pos = construir_g_pos(grade)
     teto = teto_teorico(grade, fonte=fonte)
-    ordem = gr.ordem(grafo) - 1
+    # [IA] Claude Code – correção de bug (metricas do G_est sem o no ALVO e sem os arcos que chegam nele)
+    sem_alvo = gr.subgrafo_induzido(grafo, [n for n in grafo if n != ALVO])
+    ordem = gr.ordem(sem_alvo)
     _cabecalho("Metricas")
     print(f"  G_pos : ordem {gr.ordem(pos)}, tamanho {gr.tamanho(pos)}, "
           f"densidade {gr.densidade(pos):.6f}")
-    print(f"  G_est : ordem {ordem}, tamanho {gr.tamanho(grafo)}, "
-          f"densidade {gr.densidade(grafo):.6f}")
+    print(f"  G_est : ordem {ordem}, tamanho {gr.tamanho(sem_alvo)}, "
+          f"densidade {gr.densidade(sem_alvo):.6f}")
     print(f"  teto teorico {teto}  ocupacao {100 * ordem / teto:.1f}%")
     return grafo
 
@@ -104,7 +106,8 @@ def comando_algoritmo(grafo, grade, nome, fonte, mostrar_caminho):
     caminho = [e for e in _caminho(pais, ALVO) if e != ALVO]
     print("  status  OK")
     if nome == "BFS":
-        print(f"  passos  {dist[ALVO]}")
+        # [IA] Claude Code – correção de bug (passos do BFS sem contar o arco virtual G -> ALVO)
+        print(f"  passos  {len(caminho) - 1}")
     else:
         print(f"  custo   {dist[ALVO]}")
         print(f"  passos  {len(caminho) - 1}")
