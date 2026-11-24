@@ -343,6 +343,166 @@ def gerar(pasta="out/parte1"):
                                 comparacao))
     return gerados
 
+# [IA] ChatGPT - orquestracao e geracao dos resultados da Parte 2
+
+def gerar_buscas_parte2(grafo, fontes):
+    from src.graphs.algorithms import bfs, dfs_completa
+    from time import perf_counter
+
+    resultados = {"BFS": [], "DFS": []}
+
+    for fonte in fontes:
+        tempos = []
+
+        for _ in range(5):
+            inicio = perf_counter()
+            distancias, pais = bfs(grafo, fonte)
+            tempos.append(perf_counter() - inicio)
+
+        camadas = {}
+
+        for vertice, nivel in distancias.items():
+            camadas.setdefault(nivel, []).append(vertice)
+
+        resultados["BFS"].append({
+            "fonte": fonte,
+            "ordem": list(distancias),
+            "camadas": camadas,
+            "pais": pais,
+            "vertices_visitados": len(distancias),
+            "tempos_s": tempos,
+            "tempo_medio_s": sum(tempos) / 5
+        })
+
+        tempos = []
+
+        for _ in range(5):
+            inicio = perf_counter()
+            estado, pais, descoberta, termino, arcos = dfs_completa(grafo, fonte)
+            tempos.append(perf_counter() - inicio)
+
+        tipos = {
+            "arvore": 0,
+            "retorno": 0,
+            "avanco": 0,
+            "cruzamento": 0
+        }
+
+        for _, _, tipo in arcos:
+            tipos[tipo] += 1
+
+        resultados["DFS"].append({
+            "fonte": fonte,
+            "ordem": sorted(descoberta, key=descoberta.get),
+            "pais": pais,
+            "descoberta": descoberta,
+            "termino": termino,
+            "vertices_visitados": len(descoberta),
+            "classificacao_arcos": tipos,
+            "arcos": arcos,
+            "tem_ciclo": tipos["retorno"] > 0,
+            "tempos_s": tempos,
+            "tempo_medio_s": sum(tempos) / 5
+        })
+
+    return resultados
+
+# [IA] ChatGPT - orquestracao dos casos de Bellman-Ford
+
+def gerar_bellman_ford_parte2(grafo):
+    from time import perf_counter
+    from math import isfinite
+
+    origem, destino, peso = next(
+        (u, v, p)
+        for u, vizinhos in grafo.items()
+        for v, p in vizinhos
+        if p < 0 and u != v
+    )
+
+    recorte = {
+        origem: [(destino, peso)],
+        destino: []
+    }
+
+    casos = [
+        ("sem_ciclo_negativo", recorte, origem),
+        ("grafo_completo", grafo, 7188)
+    ]
+
+    resultados = {}
+
+    for nome, g, fonte in casos:
+        tempos = []
+
+        for _ in range(5):
+            inicio = perf_counter()
+            distancias, pais, ciclo = bellman_ford(g, fonte)
+            tempos.append(perf_counter() - inicio)
+
+        resultado = {
+            "fonte": fonte,
+            "vertices": len(g),
+            "arestas": sum(len(v) for v in g.values()),
+            "tem_ciclo_negativo": bool(ciclo),
+            "ciclo": ciclo,
+            "tempos_s": tempos,
+            "tempo_medio_s": sum(tempos) / 5
+        }
+
+        if ciclo:
+            pesos_ciclo = [
+                min(p for v, p in g[u] if v == destino)
+                for u, destino in zip(ciclo, ciclo[1:])
+            ]
+
+            resultado["pesos_ciclo"] = pesos_ciclo
+            resultado["custo_ciclo"] = sum(pesos_ciclo)
+        else:
+            resultado["distancias"] = {
+                v: d if isfinite(d) else None
+                for v, d in distancias.items()
+            }
+            resultado["pais"] = pais
+
+        resultados[nome] = resultado
+
+    resultados["sem_ciclo_negativo"]["aresta_original"] = [
+        origem, destino, peso
+    ]
+
+    return resultados
+
+def gerar_parte2(
+    dataset="data/dataset_parte2/soc-sign-bitcoinalpha.csv",
+    pasta="out/parte2"
+):
+    from src.graphs.io import ler_dataset_bitcoin_alpha
+    from src.parte2.construcao import construir_grafo
+
+    arestas = ler_dataset_bitcoin_alpha(dataset)
+    grafo = construir_grafo(arestas)
+
+    fontes = [7188, 430, 3134]
+
+    relatorio = {
+        "dataset": "Bitcoin Alpha",
+        "vertices": len(grafo),
+        "arestas": sum(len(v) for v in grafo.values()),
+        "dirigido": True,
+        "ponderado": True,
+        "resultados": gerar_buscas_parte2(grafo, fontes)
+    }
+
+    relatorio["resultados"]["BELLMAN_FORD"] = gerar_bellman_ford_parte2(grafo)
+
+    os.makedirs(pasta, exist_ok=True)
+
+    destino = os.path.join(pasta, "parte2_report.json")
+
+    escrever_json(destino, relatorio)
+
+    return destino
 
 if __name__ == "__main__":
     for arquivo in gerar():
