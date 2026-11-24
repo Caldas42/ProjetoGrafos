@@ -348,7 +348,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     color-scheme:light;
   }
   *{box-sizing:border-box}
-  html,body{margin:0;min-height:100%;background:var(--bg);color:var(--txt);font-family:var(--sans)}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);font-family:var(--sans)}
   body{font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;
        background:radial-gradient(1200px 500px at 10% -10%,rgba(124,156,255,.10),transparent 60%),var(--bg)}
   button,select,input{font:inherit;color:inherit}
@@ -356,24 +356,21 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   .mono{font-family:var(--mono)}
   :focus-visible{outline:2px solid var(--acento);outline-offset:2px;border-radius:6px}
 
-  .casca{max-width:1480px;margin:0 auto;padding:1.2rem 1.2rem 3rem;display:flex;flex-direction:column;gap:1rem}
+  /* a pagina inteira cabe na janela: so os paineis internos rolam, se precisar */
+  .casca{height:100vh;padding:.6rem .8rem;display:flex;flex-direction:column;gap:.6rem}
 
-  /* ---------- topo ---------- */
-  .topo{display:flex;flex-wrap:wrap;align-items:center;gap:.8rem 1.2rem}
-  .marca{display:flex;align-items:center;gap:.7rem;margin-right:auto}
-  .logo{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;
+  /* ---------- topo: marca + todos os seletores numa barra so ---------- */
+  .topo{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem 1.1rem;background:var(--card);border:1px solid var(--linha);
+        border-radius:var(--r);padding:.5rem .8rem;box-shadow:var(--sombra);flex:none}
+  .marca{display:flex;align-items:center;gap:.55rem}
+  .logo{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;
         background:linear-gradient(135deg,var(--acento),#c084fc);color:#0b1020;font-weight:800;font-family:var(--mono)}
-  .marca h1{font-size:1.05rem;margin:0;font-weight:700;letter-spacing:-.01em}
-  .marca p{margin:0;font-size:.78rem;color:var(--txt3)}
-  .icone{background:var(--card);border:1px solid var(--linha);border-radius:10px;height:38px;padding:0 .8rem;
-         color:var(--txt2);font-size:.82rem;display:inline-flex;align-items:center;gap:.4rem;transition:.15s}
+  .marca h1{font-size:.95rem;margin:0;font-weight:700;letter-spacing:-.01em;white-space:nowrap}
+  .icone{background:var(--card2);border:1px solid var(--linha);border-radius:9px;height:32px;padding:0 .7rem;margin-left:auto;
+         color:var(--txt2);font-size:.8rem;display:inline-flex;align-items:center;gap:.4rem;transition:.15s;white-space:nowrap}
   .icone:hover{border-color:var(--acento);color:var(--txt)}
-
-  /* ---------- seletores ---------- */
-  .barra-sel{display:flex;flex-direction:column;gap:.7rem;background:var(--card);border:1px solid var(--linha);
-             border-radius:var(--r);padding:.85rem 1rem;box-shadow:var(--sombra)}
-  .linha-sel{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
-  .rot-sel{font-size:.72rem;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;width:5.6rem;flex:none}
+  .grupo{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap}
+  .rot-sel{font-size:.68rem;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;flex:none}
   .fichas{display:flex;gap:.35rem;flex-wrap:wrap}
   .ficha{border:1px solid var(--linha);background:var(--bg2);border-radius:999px;padding:.3rem .75rem;font-size:.8rem;
          color:var(--txt2);transition:.15s;display:inline-flex;align-items:center;gap:.4rem;white-space:nowrap}
@@ -384,13 +381,13 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   .ficha[aria-pressed="true"] .bolinha{box-shadow:0 0 0 2px rgba(255,255,255,.6)}
 
   /* ---------- grelha principal ---------- */
-  .grelha{display:grid;grid-template-columns:minmax(0,1fr) 22rem;gap:1rem;align-items:start}
-  @media (max-width:1060px){.grelha{grid-template-columns:1fr}}
-  .cartao{background:var(--card);border:1px solid var(--linha);border-radius:var(--r);box-shadow:var(--sombra);overflow:hidden}
+  .grelha{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 21rem;gap:.6rem}
+  .cartao{background:var(--card);border:1px solid var(--linha);border-radius:var(--r);box-shadow:var(--sombra);overflow:hidden;
+          display:flex;flex-direction:column;min-height:0}
 
-  .palco{padding:1.4rem;display:flex;justify-content:center;gap:1.4rem;flex-wrap:wrap;overflow:auto;
-         background:linear-gradient(var(--bg2),var(--bg2)) padding-box;min-height:220px}
-  .pista{display:flex;flex-direction:column;gap:.6rem;align-items:flex-start}
+  .palco{flex:1;min-height:0;padding:.8rem;display:flex;overflow:auto;background:var(--bg2)}
+  .pistas{margin:auto;display:grid;gap:1.2rem;justify-content:center;align-items:start}
+  .pista{display:flex;flex-direction:column;gap:.4rem;align-items:flex-start}
   .pista-topo{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;font-size:.8rem}
   .pista-nome{font-weight:700}
   .etiqueta{font-family:var(--mono);font-size:.72rem;padding:.12rem .5rem;border-radius:6px;background:var(--card2);
@@ -426,53 +423,61 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   @keyframes pulso{0%{opacity:.7;transform:scale(1)}100%{opacity:0;transform:scale(2.2)}}
 
   /* ---------- transporte ---------- */
-  .transporte{display:flex;flex-direction:column;gap:.7rem;padding:.9rem 1rem 1rem;border-top:1px solid var(--linha);background:var(--card)}
-  .linha-transporte{display:flex;flex-wrap:wrap;align-items:center;gap:.7rem 1.2rem}
-  .botoes{display:flex;gap:.35rem}
-  .bt{background:var(--card2);border:1px solid var(--linha);color:var(--txt2);min-width:40px;height:40px;border-radius:10px;
+  .transporte{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem 1rem;padding:.55rem .8rem;border-top:1px solid var(--linha);
+              background:var(--card);flex:none}
+  .botoes{display:flex;gap:.3rem}
+  .bt{background:var(--card2);border:1px solid var(--linha);color:var(--txt2);min-width:34px;height:34px;border-radius:9px;
       display:inline-flex;align-items:center;justify-content:center;transition:.15s}
   .bt:hover:not(:disabled){border-color:var(--acento);color:var(--txt)}
   .bt:disabled{opacity:.35;cursor:not-allowed}
-  .bt.tocar{background:var(--acento);border-color:var(--acento);color:var(--sobre-acento);font-weight:700;padding:0 1.1rem;gap:.45rem;min-width:7.2rem}
+  .bt.tocar{background:var(--acento);border-color:var(--acento);color:var(--sobre-acento);font-weight:700;padding:0 .9rem;gap:.4rem;min-width:6.2rem}
   .bt.tocar:hover:not(:disabled){background:var(--acento2);border-color:var(--acento2);color:var(--sobre-acento)}
   .bt svg{width:16px;height:16px}
-  .linha-tempo{display:flex;align-items:center;gap:.8rem}
+  .linha-tempo{display:flex;align-items:center;gap:.7rem;flex:1;min-width:12rem}
   .linha-tempo input{flex:1}
-  .contador{font-family:var(--mono);font-size:.8rem;color:var(--txt2);white-space:nowrap;min-width:6.5rem;text-align:right}
+  .contador{font-family:var(--mono);font-size:.78rem;color:var(--txt2);white-space:nowrap;min-width:6rem;text-align:right}
   input[type=range]{accent-color:var(--acento);height:4px;cursor:pointer}
   .campo{display:flex;align-items:center;gap:.5rem;font-size:.78rem;color:var(--txt3)}
-  .campo input[type=range]{width:6.5rem}
+  .campo input[type=range]{width:5rem}
   .campo b{font-family:var(--mono);font-weight:500;color:var(--txt2);min-width:2.6rem}
   .alternar{display:inline-flex;align-items:center;gap:.45rem;font-size:.8rem;color:var(--txt2);cursor:pointer;user-select:none;
             border:1px solid var(--linha);border-radius:999px;padding:.3rem .7rem;background:var(--bg2);transition:.15s}
   .alternar:has(input:checked){border-color:var(--acento);color:var(--txt)}
   .alternar input{accent-color:var(--acento);margin:0;width:15px;height:15px}
   .seletor{background:var(--card2);border:1px solid var(--linha);border-radius:8px;padding:.25rem .45rem;font-size:.8rem}
-  .dica{font-size:.72rem;color:var(--txt3);margin-left:auto}
+  .dica{font-size:.72rem;color:var(--txt3)}
   .dica kbd{font-family:var(--mono);font-size:.68rem;border:1px solid var(--linha2);border-bottom-width:2px;border-radius:5px;padding:0 .3rem;color:var(--txt2)}
 
-  /* ---------- painel lateral ---------- */
-  aside{display:flex;flex-direction:column;gap:1rem}
-  .bloco{background:var(--card);border:1px solid var(--linha);border-radius:var(--r);padding:1rem 1.05rem;box-shadow:var(--sombra)}
-  .bloco h2{font-size:.7rem;font-weight:700;color:var(--txt3);margin:0 0 .75rem;letter-spacing:.08em;text-transform:uppercase;
+  /* ---------- painel lateral: estado fixo em cima, o resto em abas ---------- */
+  aside{display:flex;flex-direction:column;gap:.6rem;min-height:0}
+  .bloco{background:var(--card);border:1px solid var(--linha);border-radius:var(--r);padding:.75rem .85rem;box-shadow:var(--sombra)}
+  .bloco h2{font-size:.68rem;font-weight:700;color:var(--txt3);margin:0 0 .5rem;letter-spacing:.08em;text-transform:uppercase;
             display:flex;align-items:center;justify-content:space-between}
-  .rotulo{font-family:var(--mono);font-size:1.15rem;font-weight:700;word-break:break-all;line-height:1.3;margin-bottom:.8rem;
-          padding:.55rem .7rem;border-radius:10px;background:var(--bg2);border:1px solid var(--linha)}
-  .par{display:flex;justify-content:space-between;align-items:center;gap:.8rem;padding:.3rem 0;font-size:.84rem}
-  .par>span:first-child{color:var(--txt3)}
-  .par>span:last-child{font-family:var(--mono);font-weight:500;font-variant-numeric:tabular-nums;text-align:right}
-  .custo-grande{display:flex;align-items:baseline;gap:.6rem;margin-top:.4rem;padding-top:.7rem;border-top:1px dashed var(--linha)}
-  .custo-grande strong{font-family:var(--mono);font-size:1.9rem;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+  .rotulo{font-family:var(--mono);font-size:.95rem;font-weight:700;word-break:break-all;line-height:1.3;margin-bottom:.55rem;
+          padding:.4rem .6rem;border-radius:9px;background:var(--bg2);border:1px solid var(--linha)}
+  .infos{display:grid;grid-template-columns:1fr 1fr;gap:.4rem .8rem}
+  .info{display:flex;flex-direction:column;gap:.1rem;min-width:0}
+  .info>span:first-child{font-size:.7rem;color:var(--txt3)}
+  .info>span:last-child{font-family:var(--mono);font-size:.82rem;font-weight:500;font-variant-numeric:tabular-nums}
+  .custo-grande{display:flex;align-items:baseline;gap:.6rem;margin-top:.55rem;padding-top:.5rem;border-top:1px dashed var(--linha)}
+  .custo-grande strong{font-family:var(--mono);font-size:1.5rem;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
   .custo-grande span{font-size:.78rem;color:var(--txt3)}
   .delta{font-family:var(--mono);font-size:.8rem;padding:.08rem .45rem;border-radius:6px;background:var(--bg2)}
   .delta.neg{color:var(--ok)} .delta.pos{color:var(--txt2)}
-  .chaves{display:flex;gap:.3rem;flex-wrap:wrap;justify-content:flex-end}
-  .chave{width:1.55rem;height:1.55rem;border-radius:7px;display:grid;place-items:center;font-family:var(--mono);font-weight:700;font-size:.8rem;
+  .chaves{display:flex;gap:.25rem;flex-wrap:wrap}
+  .chave{width:1.35rem;height:1.35rem;border-radius:7px;display:grid;place-items:center;font-family:var(--mono);font-weight:700;font-size:.8rem;
          border:1.5px dashed var(--linha2);color:var(--txt3)}
   .chave.tem{border-style:solid;border-color:transparent;color:#1e293b}
   .vazio{color:var(--txt3);font-family:var(--mono)}
 
-  .eventos{list-style:none;margin:0;padding:0;max-height:13rem;overflow:auto;display:flex;flex-direction:column;gap:.15rem}
+  .painel-abas{flex:1;min-height:0;display:flex;flex-direction:column;padding:0;overflow:hidden}
+  .abas{display:flex;border-bottom:1px solid var(--linha);flex:none}
+  .abas button{flex:1;background:none;border:0;border-bottom:2px solid transparent;padding:.55rem .2rem .45rem;font-size:.74rem;
+               font-weight:600;color:var(--txt3);transition:.15s;white-space:nowrap}
+  .abas button:hover{color:var(--txt)}
+  .abas button[aria-selected="true"]{color:var(--acento);border-bottom-color:var(--acento)}
+  .conteudo-aba{flex:1;min-height:0;overflow:auto;padding:.7rem .85rem}
+  .eventos{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.15rem}
   .eventos button{width:100%;display:flex;align-items:center;gap:.6rem;background:none;border:1px solid transparent;border-radius:8px;
                   padding:.3rem .45rem;text-align:left;font-size:.8rem;color:var(--txt2)}
   .eventos button:hover{background:var(--bg2);border-color:var(--linha)}
@@ -502,7 +507,9 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   .aviso.erro{background:color-mix(in srgb,var(--erro) 10%,transparent);border-color:color-mix(in srgb,var(--erro) 40%,transparent)}
   .aviso.alerta{background:color-mix(in srgb,var(--alerta) 10%,transparent);border-color:color-mix(in srgb,var(--alerta) 40%,transparent)}
   .aviso b{display:block;margin-bottom:.2rem}
-  .aviso code{display:block;margin-top:.45rem;font-family:var(--mono);font-size:.72rem;word-break:break-all;color:var(--txt2)}
+  .aviso{padding:.6rem .75rem;font-size:.78rem;flex:none}
+  .aviso code{display:block;margin-top:.35rem;font-family:var(--mono);font-size:.7rem;word-break:break-all;color:var(--txt2);
+              max-height:3.2rem;overflow:auto}
 
   .legenda{display:grid;grid-template-columns:1fr 1fr;gap:.35rem .8rem;font-size:.78rem;color:var(--txt2)}
   .legenda span{display:inline-flex;align-items:center;gap:.45rem}
@@ -511,7 +518,14 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
   .erro-carga{max-width:40rem;margin:4rem auto;padding:1.2rem;border-radius:12px;border:1px solid var(--erro);color:var(--txt)}
   @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
-  @media (max-width:560px){.casca{padding:.8rem .7rem 2rem}.palco{padding:.8rem}.rot-sel{width:100%}.dica{display:none}}
+  /* tela estreita (celular/janela pequena): empilha e volta a rolar a pagina */
+  @media (max-width:1060px){
+    .casca{height:auto;min-height:100vh}
+    .grelha{grid-template-columns:1fr}
+    .palco{flex:none;height:65vh}
+    .painel-abas{flex:none;height:22rem}
+  }
+  @media (max-width:560px){.casca{padding:.5rem}.dica{display:none}}
 </style>
 </head>
 <body>
@@ -1037,6 +1051,8 @@ function App(){
   const [tocando, setTocando] = useState(false);
   const [vel, setVel] = useState(4);
   const [cel, setCel] = useState(30);
+  const [lado, setLado] = useState(1);          // quantos tabuleiros por linha
+  const [aba, setAba] = useState("momentos");
   const [tema, setTema] = useState(() =>
     window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
   const palcoRef = useRef(null);
@@ -1071,13 +1087,27 @@ function App(){
 
   // ao trocar mapa: volta ao inicio e ajusta o zoom para caber na tela
   useEffect(() => { setK(0); setTocando(false); setCamada(""); }, [nomeMapa]);
-  // zoom: tenta por os tabuleiros lado a lado; se ficarem pequenos demais, empilha
+  // zoom automatico: escolhe quantos tabuleiros por linha e o tamanho da casa
+  // para que TUDO caiba no palco (largura e altura), sem rolar a pagina
   useEffect(() => {
-    const largura = palcoRef.current ? palcoRef.current.clientWidth - 48 : 900;
-    const tamanho = lado => Math.floor((largura - 22 * (lado - 1)) / lado / mapa.colunas);
-    let lado = pistas.length;
-    while (lado > 1 && tamanho(lado) < 16) lado--;
-    setCel(Math.max(9, Math.min(36, tamanho(lado))));
+    const el = palcoRef.current;
+    if (!el) return;
+    const ajustar = () => {
+      const W = el.clientWidth - 28, H = el.clientHeight - 28, n = pistas.length;
+      let melhor = {cel:0, lado:1};
+      for (let la = 1; la <= n; la++){
+        const filas = Math.ceil(n / la);
+        const t = Math.floor(Math.min((W - 20 * (la - 1)) / la / mapa.colunas,
+                                      (H - 34 * filas - 20 * (filas - 1)) / filas / mapa.linhas));
+        if (t > melhor.cel) melhor = {cel:t, lado:la};
+      }
+      setCel(Math.max(8, Math.min(56, melhor.cel)));
+      setLado(melhor.lado);
+    };
+    ajustar();
+    const ro = window.ResizeObserver ? new ResizeObserver(ajustar) : null;
+    if (ro) ro.observe(el);
+    return () => { if (ro) ro.disconnect(); };
   }, [nomeMapa, pistas.length]);
   useEffect(() => { setK(0); setTocando(false); }, [algAtual]);
   useEffect(() => { document.documentElement.setAttribute("data-theme", tema); }, [tema]);
@@ -1163,68 +1193,49 @@ function App(){
   return html`
   <div className="casca">
     <header className="topo">
-      <div className="marca">
-        <div className="logo">G</div>
-        <div><h1>Labirinto com chaves</h1><p>o mapa não é o grafo: cada casa vira vários estados</p></div>
+      <div className="marca" title="o mapa não é o grafo: cada casa vira vários estados">
+        <div className="logo">G</div><h1>Labirinto com chaves</h1>
       </div>
-      <button className="icone" onClick=${() => setTema(t => t === "light" ? "dark" : "light")}
-        aria-label="Alternar tema claro/escuro">${tema === "light" ? "☾ escuro" : "☀ claro"}</button>
-    </header>
-
-    <section className="barra-sel" aria-label="Escolhas">
-      <div className="linha-sel">
-        <span className="rot-sel">Mapa</span>
-        <div className="fichas" role="group" aria-label="Mapa">
-          ${nomes.map(n => html`<button key=${n} className="ficha" aria-pressed=${n === nomeMapa} onClick=${() => setNomeMapa(n)}
-              title=${DADOS[n].linhas + " × " + DADOS[n].colunas}>${n.replace(/^(m\d+)_/, "$1 · ").replace(/_/g, " ")}</button>`)}
-        </div>
-      </div>
-      <div className="linha-sel">
-        <span className="rot-sel">Algoritmo</span>
+      <label className="grupo"><span className="rot-sel">Mapa</span>
+        <select className="seletor" value=${nomeMapa} onChange=${e => setNomeMapa(e.target.value)} aria-label="Mapa">
+          ${nomes.map(n => html`<option key=${n} value=${n}>${n.replace(/^([mg]\d+)_/, "$1 · ").replace(/_/g, " ")} (${DADOS[n].linhas}×${DADOS[n].colunas})</option>`)}
+        </select></label>
+      <div className="grupo"><span className="rot-sel">Algoritmo</span>
         <div className="fichas" role="group" aria-label="Algoritmo">
           ${algs.map(a => html`<button key=${a} className="ficha" aria-pressed=${a === algAtual} onClick=${() => setAlg(a)}
               title=${INFO_ALG[a] ? INFO_ALG[a].ideia : a}>
               <span className="bolinha" style=${{background:COR_STATUS[mapa.percursos[a].status]}}></span>
               ${INFO_ALG[a] ? INFO_ALG[a].nome : a}</button>`)}
           ${!algs.length && html`<span className="vazio">nenhum algoritmo disponível</span>`}
-        </div>
-        <label className="alternar" style=${{marginLeft:".4rem"}}>
-          <input type="checkbox" checked=${comparar} onChange=${e => setComparar(e.target.checked)} disabled=${outros.length === 0}/> comparar lado a lado</label>
-      </div>
-      ${comparar && outros.length > 0 && html`
-      <div className="linha-sel">
-        <span className="rot-sel">Comparar com</span>
+        </div></div>
+      <div className="grupo">
+        <label className="alternar">
+          <input type="checkbox" checked=${comparar} onChange=${e => setComparar(e.target.checked)} disabled=${outros.length === 0}/> comparar</label>
+        ${comparar && outros.length > 0 && html`
         <div className="fichas" role="group" aria-label="Algoritmos comparados">
           ${outros.map(a => html`<button key=${a} className="ficha" aria-pressed=${extrasAtuais.includes(a)} onClick=${() => alternarExtra(a)}>
               <span className="bolinha" style=${{background:COR_STATUS[mapa.percursos[a].status]}}></span>
               ${INFO_ALG[a] ? INFO_ALG[a].nome : a}</button>`)}
-        </div>
-        <span className="dica" style=${{marginLeft:0}}>${pistas.length} de até 4 tabuleiros</span>
-      </div>`}
-      <div className="linha-sel">
-        <span className="rot-sel">Camada</span>
-        <div className="fichas" role="group" aria-label="Camada">
-          <button className="ficha" aria-pressed=${camada === ""} onClick=${() => setCamada("")}>todas</button>
-          ${Object.keys(mapa.camadas).map(c => html`<button key=${c} className="ficha" aria-pressed=${c === camada} onClick=${() => setCamada(c)}>
-              <span className="bolinha" style=${{background:corCamada(c)}}></span>${c === "-" ? "sem chaves" : "chaves " + c}
-              <small>${mapa.camadas[c].length}</small></button>`)}
-        </div>
+        </div>`}
       </div>
-    </section>
+      <label className="grupo"><span className="rot-sel">Camada</span>
+        <select className="seletor" value=${camada} onChange=${e => setCamada(e.target.value)} aria-label="Camada">
+          <option value="">todas</option>
+          ${Object.keys(mapa.camadas).map(c => html`<option key=${c} value=${c}>${c === "-" ? "sem chaves" : "chaves " + c} (${mapa.camadas[c].length})</option>`)}
+        </select></label>
+      <button className="icone" onClick=${() => setTema(t => t === "light" ? "dark" : "light")}
+        aria-label="Alternar tema claro/escuro">${tema === "light" ? "☾ escuro" : "☀ claro"}</button>
+    </header>
 
     <div className="grelha">
       <div className="cartao">
         <div className="palco" ref=${palcoRef} style=${{"--cel":cel + "px"}}>
-          ${pistas.map(a => html`<${Pista} key=${a} mapa=${mapa} alg=${a} k=${k} dentro=${dentro} presas=${presas}
-              mostrarTrilha=${verTrilha} idxBonus=${idxBonus} dur=${dur}/>`)}
+          <div className="pistas" style=${{gridTemplateColumns:"repeat(" + Math.min(lado, pistas.length || 1) + ", auto)"}}>
+            ${pistas.map(a => html`<${Pista} key=${a} mapa=${mapa} alg=${a} k=${k} dentro=${dentro} presas=${presas}
+                mostrarTrilha=${verTrilha} idxBonus=${idxBonus} dur=${dur}/>`)}
+          </div>
         </div>
         <div className="transporte">
-          <div className="linha-tempo">
-            <input type="range" min="0" max=${total} value=${Math.min(k, total)} disabled=${!total}
-              onChange=${e => ir(+e.target.value)} aria-label="Linha do tempo do percurso"/>
-            <span className="contador">passo ${Math.min(k, total)} / ${total}</span>
-          </div>
-          <div className="linha-transporte">
             <div className="botoes">
               <button className="bt" onClick=${() => ir(0)} disabled=${!total} aria-label="Voltar ao início" title="Início (Home)">${Ic.inicio}</button>
               <button className="bt" onClick=${() => ir(k - 1)} disabled=${!total} aria-label="Um passo atrás" title="Passo atrás (←)">${Ic.voltar}</button>
@@ -1233,34 +1244,40 @@ function App(){
               <button className="bt" onClick=${() => ir(k + 1)} disabled=${!total} aria-label="Um passo à frente" title="Passo à frente (→)">${Ic.avancar}</button>
               <button className="bt" onClick=${() => ir(total)} disabled=${!total} aria-label="Ir para o fim" title="Fim (End)">${Ic.fim}</button>
             </div>
+            <div className="linha-tempo">
+              <input type="range" min="0" max=${total} value=${Math.min(k, total)} disabled=${!total}
+                onChange=${e => ir(+e.target.value)} aria-label="Linha do tempo do percurso"/>
+              <span className="contador">passo ${Math.min(k, total)} / ${total}</span>
+            </div>
             <label className="campo">velocidade
               <input type="range" min="1" max="15" value=${vel} onChange=${e => setVel(+e.target.value)} aria-label="Passos por segundo"/>
               <b>${vel}/s</b></label>
             <label className="campo">zoom
-              <input type="range" min="8" max="48" value=${cel} onChange=${e => setCel(+e.target.value)} aria-label="Tamanho das casas"/></label>
+              <input type="range" min="8" max="64" value=${cel} onChange=${e => setCel(+e.target.value)} aria-label="Tamanho das casas"/></label>
             <label className="alternar"><input type="checkbox" checked=${verTrilha} onChange=${e => setVerTrilha(e.target.checked)}/> trilha</label>
             <label className="alternar"><input type="checkbox" checked=${verPresas} onChange=${e => setVerPresas(e.target.checked)}/> armadilhas
               <small className="mono" style=${{opacity:.7}}>${mapa.armadilhas.length}</small></label>
-            <span className="dica"><kbd>espaço</kbd> tocar · <kbd>←</kbd><kbd>→</kbd> passo</span>
-          </div>
+            <span className="dica" title="atalhos de teclado"><kbd>espaço</kbd> <kbd>←</kbd><kbd>→</kbd></span>
         </div>
       </div>
 
       <aside>
         ${aviso}
-        <div className="bloco">
+        <div className="bloco" style=${{flex:"none"}}>
           <h2>estado atual <span className="mono" style=${{textTransform:"none",letterSpacing:0}}>${INFO_ALG[algAtual] ? INFO_ALG[algAtual].nome : ""}</span></h2>
           <div className="rotulo" style=${{color:estado ? (ciclo ? "var(--erro)" : corCamada(estado.chaves)) : "var(--txt3)"}}>
             ${estado ? estado.rotulo : "—"}</div>
-          <div className="par"><span>posição</span><span>${estado ? "(" + estado.l + ", " + estado.c + ")" : "—"}</span></div>
-          <div className="par"><span>casa</span><span>${casaAtual ? nomeCasa(casaAtual) : "—"}</span></div>
-          <div className="par"><span>chaves</span>
-            <span className="chaves">${chavesDoMapa.length ? chavesDoMapa.map(ch => {
-              const tem = estado && (estado.chaves || "").includes(ch);
-              return html`<i key=${ch} className=${"chave" + (tem ? " tem" : "")} style=${tem ? {background:"var(--chave)"} : null}>${ch}</i>`;
-            }) : html`<span className="vazio">mapa sem chaves</span>`}</span></div>
-          <div className="par"><span>bônus consumidos</span>
-            <span>${nBonus ? (estado ? (estado.bonus.length ? "{" + estado.bonus.join(",") + "}" : "{}") + " de " + nBonus : "—") : html`<span className="vazio">mapa sem bônus</span>`}</span></div>
+          <div className="infos">
+            <div className="info"><span>posição</span><span>${estado ? "(" + estado.l + ", " + estado.c + ")" : "—"}</span></div>
+            <div className="info"><span>casa</span><span>${casaAtual ? nomeCasa(casaAtual) : "—"}</span></div>
+            <div className="info"><span>chaves</span>
+              <span className="chaves">${chavesDoMapa.length ? chavesDoMapa.map(ch => {
+                const tem = estado && (estado.chaves || "").includes(ch);
+                return html`<i key=${ch} className=${"chave" + (tem ? " tem" : "")} style=${tem ? {background:"var(--chave)"} : null}>${ch}</i>`;
+              }) : html`<span className="vazio">sem chaves</span>`}</span></div>
+            <div className="info"><span>bônus consumidos</span>
+              <span>${nBonus ? (estado ? (estado.bonus.length ? "{" + estado.bonus.join(",") + "}" : "{}") + " de " + nBonus : "—") : html`<span className="vazio">sem bônus</span>`}</span></div>
+          </div>
           <div className="custo-grande">
             <strong>${!ciclo && custos.length ? fmt(custos[kGuia]) : "—"}</strong>
             <span>${algAtual === "DFS" ? "custo não calculado pela DFS" : "custo acumulado" + (algAtual === "BFS" ? " (pelo terreno)" : "")}</span>
@@ -1268,18 +1285,21 @@ function App(){
           </div>
         </div>
 
-        ${eventos.length > 0 && html`
-        <div className="bloco">
-          <h2>momentos do percurso <span className="mono" style=${{textTransform:"none",letterSpacing:0}}>${eventos.length}</span></h2>
+        <div className="bloco painel-abas">
+          <div className="abas" role="tablist">
+            ${[["momentos", "Momentos" + (eventos.length ? " " + eventos.length : "")], ["algoritmos", "Algoritmos"],
+               ["grafo", "Grafo"], ["legenda", "Legenda"]].map(([id, txt]) => html`
+              <button key=${id} role="tab" aria-selected=${aba === id} onClick=${() => setAba(id)}>${txt}</button>`)}
+          </div>
+          <div className="conteudo-aba" role="tabpanel">
+          ${aba === "momentos" && (eventos.length ? html`
           <ul className="eventos">
             ${eventos.map(e => html`<li key=${e.j}><button onClick=${() => ir(e.j)}
                 className=${e.j === kGuia ? "atual" : e.j < kGuia ? "passado" : ""}>
                 <span className="n">#${e.j}</span><i className="ic" style=${{background:e.cor}}></i>${e.txt}</button></li>`)}
-          </ul>
-        </div>`}
+          </ul>` : html`<span className="vazio">nenhum momento marcado neste percurso</span>`)}
 
-        <div className="bloco">
-          <h2>algoritmos neste mapa</h2>
+          ${aba === "algoritmos" && html`
           <table className="comp">
             <thead><tr><th>algoritmo</th><th>status</th><th className="num">passos</th><th className="num">custo</th></tr></thead>
             <tbody>
@@ -1293,11 +1313,9 @@ function App(){
                   <td className="num">${cs.length ? fmt(cs[cs.length - 1]) : "—"}</td></tr>`;
               })}
             </tbody>
-          </table>
-        </div>
+          </table>`}
 
-        <div className="bloco">
-          <h2>o grafo de estados</h2>
+          ${aba === "grafo" && html`
           <div className="tiles">
             <div className="tile"><span>estados (ordem)</span><b>${m.ordem}</b></div>
             <div className="tile"><span>arcos (tamanho)</span><b>${m.tamanho}</b></div>
@@ -1307,10 +1325,11 @@ function App(){
             <div className="tile"><span>teto teórico</span><b>${m.teto}</b></div>
             <div className="tile ocupacao"><span>taxa de ocupação (estados ÷ teto)</span><b>${m.teto ? ocup.toFixed(1) + "%" : "—"}</b>
               <div className="medidor"><i style=${{width:Math.min(100, ocup) + "%"}}></i></div></div>
+          </div>`}
+
+          ${aba === "legenda" && legenda}
           </div>
         </div>
-
-        <div className="bloco"><h2>legenda</h2>${legenda}</div>
       </aside>
     </div>
   </div>`;
