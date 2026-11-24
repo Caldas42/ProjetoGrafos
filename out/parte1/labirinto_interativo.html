@@ -349,7 +349,8 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   }
   *{box-sizing:border-box}
   html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);font-family:var(--sans)}
-  body{font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;
+  html{font-size:19px}  /* base maior: todos os tamanhos em rem crescem junto */
+  body{font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;
        background:radial-gradient(1200px 500px at 10% -10%,rgba(124,156,255,.10),transparent 60%),var(--bg)}
   button,select,input{font:inherit;color:inherit}
   button{cursor:pointer}
@@ -363,14 +364,14 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   .topo{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem 1.1rem;background:var(--card);border:1px solid var(--linha);
         border-radius:var(--r);padding:.5rem .8rem;box-shadow:var(--sombra);flex:none}
   .marca{display:flex;align-items:center;gap:.55rem}
-  .logo{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;
+  .logo{width:36px;height:36px;border-radius:9px;display:grid;place-items:center;
         background:linear-gradient(135deg,var(--acento),#c084fc);color:#0b1020;font-weight:800;font-family:var(--mono)}
   .marca h1{font-size:.95rem;margin:0;font-weight:700;letter-spacing:-.01em;white-space:nowrap}
-  .icone{background:var(--card2);border:1px solid var(--linha);border-radius:9px;height:32px;padding:0 .7rem;margin-left:auto;
+  .icone{background:var(--card2);border:1px solid var(--linha);border-radius:9px;height:38px;padding:0 .7rem;margin-left:auto;
          color:var(--txt2);font-size:.8rem;display:inline-flex;align-items:center;gap:.4rem;transition:.15s;white-space:nowrap}
   .icone:hover{border-color:var(--acento);color:var(--txt)}
   .grupo{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap}
-  .rot-sel{font-size:.68rem;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;flex:none}
+  .rot-sel{font-size:.75rem;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;flex:none}
   .fichas{display:flex;gap:.35rem;flex-wrap:wrap}
   .ficha{border:1px solid var(--linha);background:var(--bg2);border-radius:999px;padding:.3rem .75rem;font-size:.8rem;
          color:var(--txt2);transition:.15s;display:inline-flex;align-items:center;gap:.4rem;white-space:nowrap}
@@ -381,14 +382,14 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   .ficha[aria-pressed="true"] .bolinha{box-shadow:0 0 0 2px rgba(255,255,255,.6)}
 
   /* ---------- grelha principal ---------- */
-  .grelha{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 21rem;gap:.6rem}
+  .grelha{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 20rem;gap:.6rem}
   .cartao{background:var(--card);border:1px solid var(--linha);border-radius:var(--r);box-shadow:var(--sombra);overflow:hidden;
           display:flex;flex-direction:column;min-height:0}
 
-  .palco{flex:1;min-height:0;padding:.8rem;display:flex;overflow:auto;background:var(--bg2)}
+  .palco{flex:1;min-height:0;padding:.4rem;display:flex;overflow:auto;background:var(--bg2)}
   .pistas{margin:auto;display:grid;gap:1.2rem;justify-content:center;align-items:start}
   .pista{display:flex;flex-direction:column;gap:.4rem;align-items:flex-start}
-  .pista-topo{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;font-size:.8rem}
+  .pista-topo{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;font-size:.85rem}
   .pista-nome{font-weight:700}
   .etiqueta{font-family:var(--mono);font-size:.72rem;padding:.12rem .5rem;border-radius:6px;background:var(--card2);
             border:1px solid var(--linha);color:var(--txt2)}
@@ -426,13 +427,13 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   .transporte{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem 1rem;padding:.55rem .8rem;border-top:1px solid var(--linha);
               background:var(--card);flex:none}
   .botoes{display:flex;gap:.3rem}
-  .bt{background:var(--card2);border:1px solid var(--linha);color:var(--txt2);min-width:34px;height:34px;border-radius:9px;
+  .bt{background:var(--card2);border:1px solid var(--linha);color:var(--txt2);min-width:42px;height:42px;border-radius:10px;
       display:inline-flex;align-items:center;justify-content:center;transition:.15s}
   .bt:hover:not(:disabled){border-color:var(--acento);color:var(--txt)}
   .bt:disabled{opacity:.35;cursor:not-allowed}
-  .bt.tocar{background:var(--acento);border-color:var(--acento);color:var(--sobre-acento);font-weight:700;padding:0 .9rem;gap:.4rem;min-width:6.2rem}
+  .bt.tocar{background:var(--acento);border-color:var(--acento);color:var(--sobre-acento);font-weight:700;padding:0 1rem;gap:.45rem;min-width:7.6rem}
   .bt.tocar:hover:not(:disabled){background:var(--acento2);border-color:var(--acento2);color:var(--sobre-acento)}
-  .bt svg{width:16px;height:16px}
+  .bt svg{width:18px;height:18px}
   .linha-tempo{display:flex;align-items:center;gap:.7rem;flex:1;min-width:12rem}
   .linha-tempo input{flex:1}
   .contador{font-family:var(--mono);font-size:.78rem;color:var(--txt2);white-space:nowrap;min-width:6rem;text-align:right}
@@ -451,14 +452,14 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   /* ---------- painel lateral: estado fixo em cima, o resto em abas ---------- */
   aside{display:flex;flex-direction:column;gap:.6rem;min-height:0}
   .bloco{background:var(--card);border:1px solid var(--linha);border-radius:var(--r);padding:.75rem .85rem;box-shadow:var(--sombra)}
-  .bloco h2{font-size:.68rem;font-weight:700;color:var(--txt3);margin:0 0 .5rem;letter-spacing:.08em;text-transform:uppercase;
+  .bloco h2{font-size:.76rem;font-weight:700;color:var(--txt3);margin:0 0 .5rem;letter-spacing:.08em;text-transform:uppercase;
             display:flex;align-items:center;justify-content:space-between}
   .rotulo{font-family:var(--mono);font-size:.95rem;font-weight:700;word-break:break-all;line-height:1.3;margin-bottom:.55rem;
           padding:.4rem .6rem;border-radius:9px;background:var(--bg2);border:1px solid var(--linha)}
   .infos{display:grid;grid-template-columns:1fr 1fr;gap:.4rem .8rem}
   .info{display:flex;flex-direction:column;gap:.1rem;min-width:0}
-  .info>span:first-child{font-size:.7rem;color:var(--txt3)}
-  .info>span:last-child{font-family:var(--mono);font-size:.82rem;font-weight:500;font-variant-numeric:tabular-nums}
+  .info>span:first-child{font-size:.78rem;color:var(--txt3)}
+  .info>span:last-child{font-family:var(--mono);font-size:.9rem;font-weight:500;font-variant-numeric:tabular-nums}
   .custo-grande{display:flex;align-items:baseline;gap:.6rem;margin-top:.55rem;padding-top:.5rem;border-top:1px dashed var(--linha)}
   .custo-grande strong{font-family:var(--mono);font-size:1.5rem;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
   .custo-grande span{font-size:.78rem;color:var(--txt3)}
@@ -472,7 +473,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
   .painel-abas{flex:1;min-height:0;display:flex;flex-direction:column;padding:0;overflow:hidden}
   .abas{display:flex;border-bottom:1px solid var(--linha);flex:none}
-  .abas button{flex:1;background:none;border:0;border-bottom:2px solid transparent;padding:.55rem .2rem .45rem;font-size:.74rem;
+  .abas button{flex:1;background:none;border:0;border-bottom:2px solid transparent;padding:.55rem .2rem .45rem;font-size:.82rem;
                font-weight:600;color:var(--txt3);transition:.15s;white-space:nowrap}
   .abas button:hover{color:var(--txt)}
   .abas button[aria-selected="true"]{color:var(--acento);border-bottom-color:var(--acento)}
@@ -516,6 +517,30 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
   .sw{width:.9rem;height:.9rem;border-radius:4px;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
   .legenda .titulo{grid-column:1/-1;font-size:.7rem;color:var(--txt3);margin-top:.3rem}
 
+  /* ---------- home ---------- */
+  .icone.voltar{margin-left:0}
+  .home{min-height:100vh;display:flex;flex-direction:column;padding:1rem}
+  .home-topo{display:flex;justify-content:flex-end}
+  .home-centro{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.2rem;padding:1rem 0 3rem}
+  .home-titulo{text-align:center;display:flex;flex-direction:column;align-items:center;gap:.5rem}
+  .home-titulo h1{margin:.4rem 0 0;font-size:2rem;letter-spacing:-.02em}
+  .home-titulo p{margin:0;color:var(--txt2);font-size:1rem;max-width:40rem}
+  .logo.grande{width:64px;height:64px;border-radius:18px;font-size:2rem}
+  .home-cartoes{display:grid;grid-template-columns:repeat(2,minmax(0,22rem));gap:1.2rem}
+  @media (max-width:820px){.home-cartoes{grid-template-columns:minmax(0,1fr)}}
+  .home-cartao{text-align:left;background:var(--card);border:1px solid var(--linha);border-radius:18px;padding:1.4rem 1.5rem;
+               box-shadow:var(--sombra);display:flex;flex-direction:column;gap:.6rem;transition:.18s}
+  .home-cartao:hover{border-color:var(--acento);transform:translateY(-3px)}
+  .home-num{font-family:var(--mono);font-size:.8rem;font-weight:700;color:var(--acento);text-transform:uppercase;letter-spacing:.08em}
+  .home-cartao h2{margin:0;font-size:1.35rem}
+  .home-cartao p{margin:0;color:var(--txt2);font-size:.92rem}
+  .home-cartao ul{margin:.2rem 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:.25rem;font-size:.88rem;color:var(--txt2)}
+  .home-cartao li b{color:var(--txt);font-family:var(--mono)}
+  .home-ir{margin-top:auto;padding-top:.4rem;font-weight:600;color:var(--acento)}
+  .parte2{flex:1;display:flex;align-items:center;justify-content:center}
+  .parte2-corpo{max-width:44rem;padding:2rem;display:flex;flex-direction:column;gap:.7rem;align-items:flex-start}
+  .parte2-corpo h2{margin:0;font-size:1.5rem}
+  .parte2-corpo p{margin:0;color:var(--txt2);overflow-wrap:anywhere}
   .erro-carga{max-width:40rem;margin:4rem auto;padding:1.2rem;border-radius:12px;border:1px solid var(--erro);color:var(--txt)}
   @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
   /* tela estreita (celular/janela pequena): empilha e volta a rolar a pagina */
@@ -1036,7 +1061,7 @@ function Pista({mapa, alg, k, dentro, presas, mostrarTrilha, idxBonus, dur}){
 }
 
 // ------------------------------------------------------------------ app
-function App(){
+function Parte1({tema, setTema, aoVoltar}){
   const nomes = Object.keys(DADOS).sort();
   const [nomeMapa, setNomeMapa] = useState(nomes.includes("m03_tres_chaves") ? "m03_tres_chaves" : nomes[0]);
   const mapa = DADOS[nomeMapa];
@@ -1053,8 +1078,6 @@ function App(){
   const [cel, setCel] = useState(30);
   const [lado, setLado] = useState(1);          // quantos tabuleiros por linha
   const [aba, setAba] = useState("momentos");
-  const [tema, setTema] = useState(() =>
-    window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
   const palcoRef = useRef(null);
 
   // algoritmo valido para o mapa atual
@@ -1093,15 +1116,15 @@ function App(){
     const el = palcoRef.current;
     if (!el) return;
     const ajustar = () => {
-      const W = el.clientWidth - 28, H = el.clientHeight - 28, n = pistas.length;
+      const W = el.clientWidth - 16, H = el.clientHeight - 16, n = pistas.length;
       let melhor = {cel:0, lado:1};
       for (let la = 1; la <= n; la++){
         const filas = Math.ceil(n / la);
         const t = Math.floor(Math.min((W - 20 * (la - 1)) / la / mapa.colunas,
-                                      (H - 34 * filas - 20 * (filas - 1)) / filas / mapa.linhas));
+                                      (H - 40 * filas - 20 * (filas - 1)) / filas / mapa.linhas));
         if (t > melhor.cel) melhor = {cel:t, lado:la};
       }
-      setCel(Math.max(8, Math.min(56, melhor.cel)));
+      setCel(Math.max(8, Math.min(80, melhor.cel)));
       setLado(melhor.lado);
     };
     ajustar();
@@ -1110,7 +1133,6 @@ function App(){
     return () => { if (ro) ro.disconnect(); };
   }, [nomeMapa, pistas.length]);
   useEffect(() => { setK(0); setTocando(false); }, [algAtual]);
-  useEffect(() => { document.documentElement.setAttribute("data-theme", tema); }, [tema]);
 
   // animacao
   useEffect(() => {
@@ -1193,8 +1215,9 @@ function App(){
   return html`
   <div className="casca">
     <header className="topo">
+      <button className="icone voltar" onClick=${aoVoltar} aria-label="Voltar para o início">← Início</button>
       <div className="marca" title="o mapa não é o grafo: cada casa vira vários estados">
-        <div className="logo">G</div><h1>Labirinto com chaves</h1>
+        <div className="logo">1</div><h1>Parte 1 · Labirinto com chaves</h1>
       </div>
       <label className="grupo"><span className="rot-sel">Mapa</span>
         <select className="seletor" value=${nomeMapa} onChange=${e => setNomeMapa(e.target.value)} aria-label="Mapa">
@@ -1240,7 +1263,7 @@ function App(){
               <button className="bt" onClick=${() => ir(0)} disabled=${!total} aria-label="Voltar ao início" title="Início (Home)">${Ic.inicio}</button>
               <button className="bt" onClick=${() => ir(k - 1)} disabled=${!total} aria-label="Um passo atrás" title="Passo atrás (←)">${Ic.voltar}</button>
               <button className="bt tocar" onClick=${alternarTocar} disabled=${!total}
-                aria-label=${tocando ? "Pausar" : "Tocar"}>${tocando ? Ic.pausar : Ic.tocar}${tocando ? "pausar" : "tocar"}</button>
+                aria-label=${tocando ? "Pausar" : "Executar"}>${tocando ? Ic.pausar : Ic.tocar}${tocando ? "pausar" : "executar"}</button>
               <button className="bt" onClick=${() => ir(k + 1)} disabled=${!total} aria-label="Um passo à frente" title="Passo à frente (→)">${Ic.avancar}</button>
               <button className="bt" onClick=${() => ir(total)} disabled=${!total} aria-label="Ir para o fim" title="Fim (End)">${Ic.fim}</button>
             </div>
@@ -1253,7 +1276,7 @@ function App(){
               <input type="range" min="1" max="15" value=${vel} onChange=${e => setVel(+e.target.value)} aria-label="Passos por segundo"/>
               <b>${vel}/s</b></label>
             <label className="campo">zoom
-              <input type="range" min="8" max="64" value=${cel} onChange=${e => setCel(+e.target.value)} aria-label="Tamanho das casas"/></label>
+              <input type="range" min="8" max="90" value=${cel} onChange=${e => setCel(+e.target.value)} aria-label="Tamanho das casas"/></label>
             <label className="alternar"><input type="checkbox" checked=${verTrilha} onChange=${e => setVerTrilha(e.target.checked)}/> trilha</label>
             <label className="alternar"><input type="checkbox" checked=${verPresas} onChange=${e => setVerPresas(e.target.checked)}/> armadilhas
               <small className="mono" style=${{opacity:.7}}>${mapa.armadilhas.length}</small></label>
@@ -1335,7 +1358,89 @@ function App(){
   </div>`;
 }
 
-ReactDOM.createRoot(document.getElementById("app")).render(html`<${App}/>`);
+// ------------------------------------------------------------------ home: Parte 1 e Parte 2 separadas
+const BotaoTema = ({tema, setTema}) => html`
+  <button className="icone" onClick=${() => setTema(t => t === "light" ? "dark" : "light")}
+    aria-label="Alternar tema claro/escuro">${tema === "light" ? "☾ escuro" : "☀ claro"}</button>`;
+
+function Inicio({ir, tema, setTema}){
+  const nMapas = Object.keys(DADOS).length;
+  const algs = [...new Set(Object.values(DADOS).flatMap(m => Object.keys(m.percursos)))]
+    .sort((a, b) => ORDEM_ALG.indexOf(a) - ORDEM_ALG.indexOf(b));
+  return html`
+  <div className="home">
+    <div className="home-topo"><${BotaoTema} tema=${tema} setTema=${setTema}/></div>
+    <div className="home-centro">
+      <div className="home-titulo">
+        <div className="logo grande">G</div>
+        <h1>Teoria dos Grafos + AVD</h1>
+        <p>Projeto Final 2026.2 · Labirinto com Chaves (Grafo de Estados) + Comparação de Algoritmos</p>
+      </div>
+      <div className="home-cartoes">
+        <button className="home-cartao" onClick=${() => ir("parte1")}>
+          <span className="home-num">Parte 1</span>
+          <h2>Labirinto com chaves</h2>
+          <p>Cada mapa vira um grafo de estados (posição, chaves, bônus). Veja os algoritmos percorrendo o labirinto passo a passo e compare até 4 lado a lado.</p>
+          <ul>
+            <li><b>${nMapas}</b> mapas</li>
+            <li><b>${algs.length}</b> algoritmos: ${algs.map(a => INFO_ALG[a] ? INFO_ALG[a].nome : a).join(", ")}</li>
+          </ul>
+          <span className="home-ir">abrir →</span>
+        </button>
+        <button className="home-cartao" onClick=${() => ir("parte2")}>
+          <span className="home-num">Parte 2</span>
+          <h2>Dataset maior</h2>
+          <p>Os mesmos algoritmos aplicados a um grafo dirigido e ponderado real: a rede de confiança Bitcoin Alpha.</p>
+          <ul><li><span className="etiqueta alerta">em desenvolvimento</span></li></ul>
+          <span className="home-ir">abrir →</span>
+        </button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function Parte2({aoVoltar, tema, setTema}){
+  return html`
+  <div className="casca">
+    <header className="topo">
+      <button className="icone voltar" onClick=${aoVoltar} aria-label="Voltar para o início">← Início</button>
+      <div className="marca"><div className="logo">2</div><h1>Parte 2 · Dataset maior</h1></div>
+      <${BotaoTema} tema=${tema} setTema=${setTema}/>
+    </header>
+    <div className="cartao parte2">
+      <div className="parte2-corpo">
+        <span className="etiqueta alerta">em desenvolvimento</span>
+        <h2>Bitcoin Alpha · rede de confiança</h2>
+        <p>Grafo dirigido e ponderado: cada arco é a avaliação de confiança que um usuário deu a outro.</p>
+        <p className="vazio">Os resultados da Parte 2 (algoritmos no dataset e comparação de tempos) vão aparecer aqui
+          quando as saídas em <span className="mono">out/parte2/</span> estiverem prontas.</p>
+        <p>Enquanto isso, a análise exploratória está em
+          <span className="mono"> docs/Analise_Exploratoria_e_Explanatoria_do_Dataset_Bitcoin_Alpha_Trust_Weight_Signed_Network.ipynb</span>.</p>
+      </div>
+    </div>
+  </div>`;
+}
+
+// navegacao pelo endereco (#parte1, #parte2): o botao voltar do navegador funciona
+function Raiz(){
+  const ler = () => (location.hash || "").replace("#", "");
+  const [tela, setTela] = useState(ler);
+  const [tema, setTema] = useState(() =>
+    window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+  useEffect(() => { document.documentElement.setAttribute("data-theme", tema); }, [tema]);
+  useEffect(() => {
+    const f = () => setTela(ler());
+    window.addEventListener("hashchange", f);
+    return () => window.removeEventListener("hashchange", f);
+  }, []);
+  const ir = t => { location.hash = t; };
+  const voltar = () => { history.pushState(null, "", location.pathname); setTela(""); };
+  if (tela === "parte1") return html`<${Parte1} tema=${tema} setTema=${setTema} aoVoltar=${voltar}/>`;
+  if (tela === "parte2") return html`<${Parte2} tema=${tema} setTema=${setTema} aoVoltar=${voltar}/>`;
+  return html`<${Inicio} ir=${ir} tema=${tema} setTema=${setTema}/>`;
+}
+
+ReactDOM.createRoot(document.getElementById("app")).render(html`<${Raiz}/>`);
 })();
 </script>
 </body>
