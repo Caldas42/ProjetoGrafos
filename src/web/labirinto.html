@@ -324,6 +324,8 @@ function custosDe(mapa, alg, passos){
     const s = passos[j], ch = mapa.grade[s.l][s.c];
     let v = custoCasa(ch);
     if (ch === "+") v = s.bonus.length > passos[j-1].bonus.length ? -4 : 1;
+    if (ch === "*" && mapa.fonte === "consumivel")
+      v = s.bonus.length > passos[j-1].bonus.length ? -2 : 1;
     out.push(out[j-1] + v);
   }
   return out;
@@ -337,7 +339,16 @@ function eventosDe(mapa, passos){
     if ((s.chaves || "") !== (a.chaves || "")) ev.push({j, txt:"pegou a chave " + ch, cor:"var(--chave)"});
     else if ("ABCD".includes(ch) && !"ABCD".includes(mapa.grade[a.l][a.c])) ev.push({j, txt:"passou pela porta " + ch, cor:"var(--porta)"});
     else if (ch === "+" && s.bonus.length > a.bonus.length) ev.push({j, txt:"consumiu um bônus (−4)", cor:"var(--bonus)"});
-    else if (ch === "*") ev.push({j, txt:"passou na fonte (−2)", cor:"var(--fonte)"});
+    else if (ch === "*") {
+      const consumida = mapa.fonte === "consumivel"
+        && s.bonus.length === a.bonus.length;
+
+      ev.push({
+        j,
+        txt: consumida ? "passou na fonte já consumida (+1)" : "passou na fonte (−2)",
+        cor: "var(--fonte)"
+      });
+    }
     else if (SETA[ch] && !SETA[mapa.grade[a.l][a.c]]) ev.push({j, txt:"subiu na esteira " + SETA[ch], cor:"var(--esteira)"});
     else if (ch === "G") ev.push({j, txt:"chegou à saída", cor:"var(--saida)"});
   }
@@ -345,9 +356,20 @@ function eventosDe(mapa, passos){
 }
 
 // indice de cada bonus "+" (ordem de leitura: linha, depois coluna)
-function indicesBonus(grade){
-  const m = {}; let k = 0;
-  grade.forEach((linha, l) => linha.forEach((ch, c) => { if (ch === "+") m[l + "," + c] = k++; }));
+function indicesBonus(grade, fonte="infinita"){
+  const m = {};
+  let k = 0;
+
+  grade.forEach((linha, l) => linha.forEach((ch, c) => {
+    if (ch === "+") m[l + "," + c] = k++;
+  }));
+
+  if (fonte === "consumivel"){
+    grade.forEach((linha, l) => linha.forEach((ch, c) => {
+      if (ch === "*") m[l + "," + c] = k++;
+    }));
+  }
+
   return m;
 }
 
@@ -376,7 +398,7 @@ const Grade = memo(function Grade({mapa, dentro, presas, chaves, bonusTxt, idxBo
       if (SETA[ch]) txt = SETA[ch];
       if (ch === "*") txt = "✦";
       if ("ABCD".includes(ch) && chaves.includes(ch.toLowerCase())) cls += " aberta";
-      if (ch === "+" && gastos.has(idxBonus[l + "," + c])) cls += " gasto";
+      if ((ch === "+" || ch === "*") && gastos.has(idxBonus[l + "," + c])) cls += " gasto";
       if (dentro && ch !== "#" && !dentro.has(l + "," + c)) cls += " apagada";
       if (presas && presas.has(l + "," + c)) cls += " presa";
       cels.push(html`<div key=${l + "," + c} className=${cls} title=${"(" + l + "," + c + ") " + nomeCasa(ch)}>${txt}</div>`);
@@ -479,7 +501,12 @@ function Parte1({tema, setTema, aoVoltar, servidor}){
     }
     if (entradaRef.current) entradaRef.current.value = "";
   };
-  const mapa = DADOS[nomeMapa];
+  const [fonteConsumivel, setFonteConsumivel] = useState(false);
+  const mapaOriginal = DADOS[nomeMapa];
+
+  const mapa = fonteConsumivel && mapaOriginal.versao_consumivel
+    ? mapaOriginal.versao_consumivel
+    : mapaOriginal;
   const algs = useMemo(() => Object.keys(mapa.percursos).sort((a, b) => ORDEM_ALG.indexOf(a) - ORDEM_ALG.indexOf(b)), [mapa]);
   const [alg, setAlg] = useState(algs[0]);
   const [comparar, setComparar] = useState(false);
@@ -513,7 +540,7 @@ function Parte1({tema, setTema, aoVoltar, servidor}){
   const estado = passosGuia[kGuia];
   const custos = useMemo(() => custosDe(mapa, algAtual, passosGuia), [mapa, algAtual]);
   const eventos = useMemo(() => eventosDe(mapa, passosGuia), [mapa, algAtual]);
-  const idxBonus = useMemo(() => indicesBonus(mapa.grade), [mapa]);
+  const idxBonus = useMemo(() => indicesBonus(mapa.grade, mapa.fonte), [mapa]);
   const chavesDoMapa = useMemo(() => [...new Set(mapa.grade.flat().filter(ch => "abcd".includes(ch)))].sort(), [mapa]);
   const nBonus = Object.keys(idxBonus).length;
 
@@ -524,7 +551,15 @@ function Parte1({tema, setTema, aoVoltar, servidor}){
   }, [mapa, camada, verPresas]);
 
   // ao trocar mapa: volta ao inicio e ajusta o zoom para caber na tela
-  useEffect(() => { setK(0); setTocando(false); setCamada(""); }, [nomeMapa]);
+  useEffect(() => {
+    setFonteConsumivel(false);
+  }, [nomeMapa]);
+
+  useEffect(() => {
+    setK(0);
+    setTocando(false);
+    setCamada("");
+  }, [nomeMapa, fonteConsumivel]);
   // zoom automatico: escolhe quantos tabuleiros por linha e o tamanho da casa
   // para que TUDO caiba no palco (largura e altura), sem rolar a pagina
   useEffect(() => {
@@ -612,7 +647,7 @@ function Parte1({tema, setTema, aoVoltar, servidor}){
   const legenda = (() => {
     const vistos = new Set(mapa.grade.flat());
     const itens = [["#","parede · intransponível","var(--parede)"],[".","chão · 1","var(--chao)"],[",","lama · 3","var(--lama)"],
-                   ["~","água · 5","var(--agua)"],["+","bônus · −4 na 1ª vez","var(--bonus)"],["*","fonte · −2","var(--fonte)"],
+                   ["~","água · 5","var(--agua)"],["+","bônus · −4 na 1ª vez","var(--bonus)"],["*", mapa.fonte === "consumivel" ? "fonte · −2 na 1ª vez, depois +1" : "fonte · −2", "var(--fonte)"],
                    ["S","início","var(--inicio)"],["G","saída","var(--saida)"]].filter(([c]) => vistos.has(c));
     const tem = s => [...vistos].some(c => s.includes(c));
     if (tem("abcd")) itens.push(["k", "chave · 1", "var(--chave)"]);
@@ -642,6 +677,17 @@ function Parte1({tema, setTema, aoVoltar, servidor}){
       <label className="icone carregar" title="Enviar um mapa .txt novo; o Python do grupo calcula e a página mostra">
         <input ref=${entradaRef} type="file" accept=".txt,text/plain" hidden onChange=${e => carregarMapa(e.target.files[0])}/>
         ⤒ Carregar mapa</label>`}
+      ${mapaOriginal.versao_consumivel && html`
+        <label className="alternar">
+          <input type="checkbox"
+            checked=${fonteConsumivel}
+            onChange=${e => {
+              setFonteConsumivel(e.target.checked);
+              setAlg("BELLMAN_FORD");
+            }}/>
+          Fonte consumível
+        </label>
+      `}
       <div className="grupo"><span className="rot-sel">Algoritmo</span>
         <div className="fichas" role="group" aria-label="Algoritmo">
           ${algs.map(a => html`<button key=${a} className="ficha" aria-pressed=${a === algAtual} onClick=${() => setAlg(a)}

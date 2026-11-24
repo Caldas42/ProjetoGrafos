@@ -98,11 +98,11 @@ def _rodar(funcao, grafo, inicio):
 # coleta dos dados de um mapa
 # ----------------------------------------------------------------------
 
-def coletar(caminho_mapa):
+def coletar(caminho_mapa, fonte="infinita"):
     """Monta o dicionario com tudo que a pagina precisa para um mapa."""
     nome = os.path.splitext(os.path.basename(caminho_mapa))[0]
     grade = ler_mapa(caminho_mapa)
-    grafo = construir_g_est(grade)
+    grafo = construir_g_est(grade, fonte=fonte)
     inicio = estado_inicial(grade)
 
     estados = [e for e in grafo if e != ALVO]
@@ -173,6 +173,7 @@ def coletar(caminho_mapa):
 
     return {
         "nome": nome,
+        "fonte": fonte,
         "grade": grade,
         "linhas": len(grade),
         "colunas": len(grade[0]) if grade else 0,
@@ -180,7 +181,7 @@ def coletar(caminho_mapa):
             "ordem": gr.ordem(sem_alvo),
             "tamanho": gr.tamanho(sem_alvo),
             "densidade": round(gr.densidade(sem_alvo), 6),
-            "teto": teto_teorico(grade),
+            "teto": teto_teorico(grade, fonte=fonte),
         },
         "camadas": {k: sorted(map(list, v)) for k, v in sorted(camadas.items())},
         "armadilhas": sorted([e[0], e[1], e[2] or "-"] for e in armadilhas),
@@ -226,6 +227,10 @@ def gerar_html(mapas=None, saida="out/parte1/labirinto_interativo.html"):
     for caminho in mapas:
         try:
             info = coletar(caminho)
+
+            if info["nome"] == "m06_fonte":
+                info["versao_consumivel"] = coletar(caminho, fonte="consumivel")
+
             dados[info["nome"]] = info
         except Exception as erro:
             print(f"  ! {os.path.basename(caminho)}: {type(erro).__name__}: {erro}")
