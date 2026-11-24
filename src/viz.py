@@ -169,15 +169,17 @@ def coletar(caminho_mapa):
             "n_passos": len(passos) - 1,
         }
 
+    sem_alvo = gr.subgrafo_induzido(grafo, [n for n in grafo if n != ALVO])
+
     return {
         "nome": nome,
         "grade": grade,
         "linhas": len(grade),
         "colunas": len(grade[0]) if grade else 0,
         "metricas": {
-            "ordem": gr.ordem(grafo) - 1,
-            "tamanho": gr.tamanho(grafo),
-            "densidade": round(gr.densidade(grafo), 6),
+            "ordem": gr.ordem(sem_alvo),
+            "tamanho": gr.tamanho(sem_alvo),
+            "densidade": round(gr.densidade(sem_alvo), 6),
             "teto": teto_teorico(grade),
         },
         "camadas": {k: sorted(map(list, v)) for k, v in sorted(camadas.items())},
