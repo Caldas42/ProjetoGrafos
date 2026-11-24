@@ -1,3 +1,6 @@
+import csv
+import gzip
+
 CHAVES_VALIDAS = {"a", "b", "c", "d"}
 PORTAS_VALIDAS = {"A", "B", "C", "D"}
 ESTEIRAS_VALIDAS = {"^", "v", "<", ">"}
@@ -132,3 +135,21 @@ def validar_mapa(grade):
         raise ValueError(f"Erro de Validação: O mapa contém {qtd_inicio} pontos 'S'. É permitido apenas 1.")
     if qtd_saida == 0:
         raise ValueError("Erro de Validação: Nenhuma saída ('G') foi encontrada no mapa.")
+
+def ler_dataset_bitcoin_alpha(caminho):
+    arestas = []
+
+    with gzip.open(caminho, "rt", encoding="utf-8") as arquivo:
+        leitor = csv.reader(arquivo)
+
+        for numero_linha, linha in enumerate(leitor, start=1):
+            if len(linha) != 4:
+                raise ValueError(
+                    f"Linha {numero_linha}: esperado 4 campos, encontrados {len(linha)}"
+                )
+
+            origem, destino, peso, timestamp = map(int, linha)
+
+            arestas.append((origem, destino, peso, timestamp))
+
+    return arestas
