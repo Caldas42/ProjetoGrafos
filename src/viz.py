@@ -561,70 +561,254 @@ def figura_camadas(caminho_mapa="data/mapas/m02_uma_chave.txt",
     grafo = construir_g_est(grade)
     n_l, n_c = len(grade), len(grade[0])
 
-    camadas = sorted({e[2] for e in grafo if e != ALVO}, key=lambda s: (len(s), s))
+    camadas = sorted(
+        {e[2] for e in grafo if e != ALVO},
+        key=lambda s: (len(s), s)
+    )
+
     faixa = {ch: i for i, ch in enumerate(camadas)}
-    tons = _tons(len(camadas))
-    alt = n_l + 2.2
+
+    paleta = [
+        "#2563EB",
+        "#EA580C",
+        "#9333EA",
+        "#059669",
+        "#DB2777"
+    ]
+
+    tons = {
+        ch: paleta[i % len(paleta)]
+        for i, ch in enumerate(camadas)
+    }
+
+    cor_arco = "#64748B"
+    cor_transicao = "#059669"
+    alt = n_l + 1.5
+    escala_x = 1.8
 
     def pos(e):
-        return (e[1], (len(camadas) - 1 - faixa[e[2]]) * alt + e[0])
+        return (
+            e[1] * escala_x,
+            (len(camadas) - 1 - faixa[e[2]]) * alt + e[0]
+        )
 
-    fig, ax = plt.subplots(figsize=(max(7, n_c * .5), 2.4 + len(camadas) * alt * .42))
+    fig, ax = plt.subplots(
+        figsize=(18, 8)
+    )
 
     for ch in camadas:
-        y0 = (len(camadas) - 1 - faixa[ch]) * alt - .6
-        ax.add_patch(Rectangle((-1.1, y0), n_c + 1.4, n_l + .2,
-                               facecolor="#f3f5f8", edgecolor="#d3d7e0", lw=.8, zorder=0))
-        ax.text(-1.5, y0 + n_l / 2, f"camada\n{ch or '-'}", ha="right", va="center",
-                fontsize=9, weight="bold", color=tons[faixa[ch]])
+        estados = [
+            e for e in grafo
+            if e != ALVO and e[2] == ch
+        ]
+
+        coordenadas = [pos(e) for e in estados]
+
+        xmin = min(x for x, y in coordenadas)
+        xmax = max(x for x, y in coordenadas)
+        ymin = min(y for x, y in coordenadas)
+        ymax = max(y for x, y in coordenadas)
+
+        ax.add_patch(
+            Rectangle(
+                (xmin - .8, ymin - .7),
+                xmax - xmin + 1.6,
+                ymax - ymin + 1.4,
+                facecolor=tons[ch],
+                edgecolor=tons[ch],
+                alpha=.07,
+                linewidth=1.5,
+                zorder=0
+            )
+        )
+
+        ax.text(
+            xmin - 1.2,
+            (ymin + ymax) / 2,
+            f"Com {ch}" if ch else "Sem chaves",
+            ha="right",
+            va="center",
+            fontsize=13,
+            weight="bold",
+            color=tons[ch]
+        )
 
     dentro = fora = 0
+
     for origem, vizinhos in grafo.items():
         if origem == ALVO:
             continue
+
         x0, y0 = pos(origem)
+
         for destino, _ in vizinhos:
             if destino == ALVO:
                 continue
+
             x1, y1 = pos(destino)
+
             if destino[2] == origem[2]:
-                ax.annotate("", (x1, y1), (x0, y0), zorder=1,
-                            arrowprops=dict(arrowstyle="->", color="#c3c7d2",
-                                            lw=1.0, shrinkA=3, shrinkB=3))
+
+                reciproco = any(
+                    v == origem
+                    for v, _ in grafo[destino]
+                )
+
+                ax.annotate(
+                    "",
+                    xy=(x1, y1),
+                    xytext=(x0, y0),
+                    arrowprops=dict(
+                        arrowstyle="-|>",
+                        color=cor_arco,
+                        linewidth=1.3,
+                        mutation_scale=12,
+                        shrinkA=6,
+                        shrinkB=6,
+                        connectionstyle=(
+                            "arc3,rad=0.16"
+                            if reciproco else "arc3,rad=0"
+                        )
+                    ),
+                    zorder=2
+                )
+
                 dentro += 1
+
             else:
-                ax.annotate("", (x1, y1), (x0, y0), zorder=5,
-                            arrowprops=dict(arrowstyle="-|>", color="#eb6834",
-                                            lw=2.4, shrinkA=3, shrinkB=3))
+                ax.annotate(
+                    "",
+                    xy=(x1, y1),
+                    xytext=(x0, y0),
+                    arrowprops=dict(
+                        arrowstyle="-|>",
+                        color=cor_transicao,
+                        linewidth=3,
+                        mutation_scale=22,
+                        shrinkA=7,
+                        shrinkB=7
+                    ),
+                    zorder=5
+                )
+
+                novas = "".join(
+                    sorted(set(destino[2]) - set(origem[2]))
+                )
+
+                ax.annotate(
+                    f"Coleta da chave {novas}",
+                    ((x0 + x1) / 2, (y0 + y1) / 2),
+                    textcoords="offset points",
+                    xytext=(-18, 0),
+                    ha="right",
+                    va="center",
+                    fontsize=12,
+                    weight="bold",
+                    color=cor_transicao,
+                    bbox=dict(
+                        boxstyle="round,pad=0.4",
+                        fc="#ffffff",
+                        ec=cor_transicao,
+                        lw=1.5
+                    ),
+                    zorder=7
+                )
+
                 fora += 1
 
     for e in grafo:
         if e == ALVO:
             continue
+
         x, y = pos(e)
-        ax.plot(x, y, "o", markersize=7, color=tons[faixa[e[2]]],
-                markeredgecolor="#ffffff", markeredgewidth=1.0, zorder=4)
 
-        ax.text(x + 0.18, y - 0.12, rotular(e),
-                fontsize=5.5, color=TINTA, zorder=6)
+        ax.plot(
+            x, y, "o",
+            markersize=10,
+            color=tons[e[2]],
+            markeredgecolor="#ffffff",
+            markeredgewidth=1.4,
+            zorder=4
+        )
 
-    ax.set_xlim(-3.4, n_c + .6)
+        ax.annotate(
+            rotular(e),
+            (x, y),
+            textcoords="offset points",
+            xytext=(0, 11),
+            ha="center",
+            va="bottom",
+            fontsize=8.5,
+            color=TINTA,
+            zorder=6
+        )
+
+    ax.autoscale_view()
+    ax.margins(x=.12, y=.10)
     ax.invert_yaxis()
-    ax.set_aspect("equal")
     ax.axis("off")
-    ax.legend(handles=[
-        Line2D([], [], color="#c3c7d2", lw=1.4, label=f"arco dentro da camada ({dentro})"),
-        Line2D([], [], color="#eb6834", lw=2.4, label=f"arco que TROCA de camada ({fora})"),
-        Line2D([], [], marker="o", color="none", markerfacecolor=tons[0],
-               markeredgecolor="#fff", markersize=8, label="estado"),
-    ], loc="upper center", bbox_to_anchor=(.5, -.02), ncol=3, fontsize=8.5, frameon=False)
-    ax.set_title(f"Grafo de estados em camadas — {nome}\n"
-                 f"{len(grafo)-1} estados · cada camada é um conjunto de chaves · "
-                 f"{fora} arco(s) trocam de camada",
-                 fontsize=11, weight="bold", color=TINTA, pad=12)
+
+    itens = [
+        Line2D(
+            [], [],
+            marker="o",
+            color="none",
+            markerfacecolor=tons[ch],
+            markeredgecolor="#ffffff",
+            markersize=10,
+            label=f"Com {ch}" if ch else "Sem chaves"
+        )
+        for ch in camadas
+    ]
+
+    itens += [
+        Line2D(
+            [], [],
+            color=cor_arco,
+            lw=1.8,
+            label=f"Arco interno ({dentro})"
+        ),
+        Line2D(
+            [], [],
+            color=cor_transicao,
+            lw=3,
+            label=f"Mudança de camada ({fora})"
+        )
+    ]
+
+    ax.legend(
+        handles=itens,
+        loc="upper center",
+        bbox_to_anchor=(.5, -.025),
+        ncol=4,
+        fontsize=12,
+        frameon=False,
+        handlelength=2.5,
+        columnspacing=2
+    )
+
+    ax.set_title(
+        f"Grafo de estados em camadas — {nome}\n"
+        f"{len(grafo)-1} estados · "
+        f"{len(camadas)} camadas · "
+        f"{fora} arco(s) de transição",
+        fontsize=19,
+        weight="bold",
+        color=TINTA,
+        pad=20
+    )
+
     fig.tight_layout()
-    fig.savefig(saida, dpi=160, bbox_inches="tight", facecolor="#fcfcfb")
+
+    fig.savefig(
+        saida,
+        dpi=200,
+        bbox_inches="tight",
+        facecolor="#fcfcfb"
+    )
+
     plt.close(fig)
+
     return saida
 
 
@@ -633,75 +817,284 @@ def figura_arvore_bfs(caminho_mapa="data/mapas/m02_uma_chave.txt",
     if "BFS" not in ALGORITMOS:
         print("  ! arvore BFS: a funcao bfs() ainda nao existe em algorithms.py")
         return None
+
     nome = os.path.splitext(os.path.basename(caminho_mapa))[0]
     grade = ler_mapa(caminho_mapa)
     grafo = construir_g_est(grade)
     inicio = estado_inicial(grade)
+
     saida_bfs = _rodar(ALGORITMOS["BFS"], grafo, inicio)
+
     if saida_bfs is None:
         return None
+
     niveis, pais = saida_bfs[0], saida_bfs[1]
 
     por_nivel = {}
+
     for no, n in niveis.items():
         if no != ALVO:
             por_nivel.setdefault(n, []).append(no)
+
     for n in por_nivel:
         por_nivel[n].sort()
 
     pos = {}
+
     for n, nos in por_nivel.items():
         for i, no in enumerate(nos):
             pos[no] = (n, i - (len(nos) - 1) / 2)
 
     fundo = max(por_nivel)
-    fig, ax = plt.subplots(figsize=(max(8, fundo * .42), 4.6))
+
+    fig, ax = plt.subplots(figsize=(26, 5.5))
+
+    paleta = [
+        "#2563EB",
+        "#EA580C",
+        "#9333EA",
+        "#059669",
+        "#DB2777"
+    ]
+
+    ordem_ch = sorted(
+        {no[2] for no in pos},
+        key=lambda t: (len(t), t)
+    )
+
+    tons = {
+        ch: paleta[i % len(paleta)]
+        for i, ch in enumerate(ordem_ch)
+    }
+
+    cor_arco = "#64748B"
+    cor_transicao = "#059669"
+
+    for n in range(fundo + 1):
+        ax.axvline(
+            n,
+            color="#E2E8F0",
+            lw=.8,
+            zorder=0
+        )
 
     for no, (x, y) in pos.items():
         pai = pais.get(no)
-        if pai in pos:
-            px, py = pos[pai]
-            ax.plot([px, x], [py, y], color="#c3c7d2", lw=1.0, zorder=1)
 
-    ordem_ch = sorted({no[2] for no in pos}, key=lambda t: (len(t), t))
-    tons = dict(zip(ordem_ch, _tons(len(ordem_ch))))
+        if pai not in pos:
+            continue
+
+        px, py = pos[pai]
+
+        transicao = no[2] != pai[2]
+
+        ax.annotate(
+            "",
+            xy=(x, y),
+            xytext=(px, py),
+            arrowprops=dict(
+                arrowstyle="-|>",
+                color=cor_transicao if transicao else cor_arco,
+                linewidth=2.5 if transicao else 1.4,
+                mutation_scale=15 if transicao else 10,
+                shrinkA=6,
+                shrinkB=6
+            ),
+            zorder=2
+        )
+
+        if transicao:
+            novas = "".join(
+                sorted(set(no[2]) - set(pai[2]))
+            )
+
+            ax.annotate(
+                f"Coleta da chave {novas}",
+                ((px + x) / 2, (py + y) / 2),
+                textcoords="offset points",
+                xytext=(0, 65),
+                ha="center",
+                fontsize=12,
+                weight="bold",
+                color=cor_transicao,
+                bbox=dict(
+                    boxstyle="round,pad=0.35",
+                    fc="#FFFFFF",
+                    ec=cor_transicao,
+                    lw=1.5
+                ),
+                arrowprops=dict(
+                    arrowstyle="->",
+                    color=cor_transicao,
+                    lw=1.3
+                ),
+                zorder=7
+            )
+
     for no, (x, y) in pos.items():
         cor = tons[no[2]]
-        ax.plot(x, y, "o", markersize=5.6, color=cor,
-                markeredgecolor="#ffffff", markeredgewidth=.9, zorder=3)
 
-        ax.text(x + 0.08, y + 0.08, rotular(no),
-                fontsize=5.2, color=TINTA, zorder=4)
+        eh_inicio = no == inicio
+        eh_saida = grade[no[0]][no[1]] == "G"
 
-    for n in range(0, fundo + 1, max(1, fundo // 12)):
-        ax.axvline(n, color="#e7eaf0", lw=.7, zorder=0)
+        ax.plot(
+            x, y, "o",
+            markersize=10 if eh_inicio or eh_saida else 7.5,
+            color=cor,
+            markeredgecolor="#FFFFFF",
+            markeredgewidth=1.2,
+            zorder=4
+        )
+
+        deslocamento = 13 if int(x) % 2 == 0 else -13
+
+        ax.annotate(
+            rotular(no),
+            (x, y),
+            textcoords="offset points",
+            xytext=(0, deslocamento),
+            ha="center",
+            va="bottom" if deslocamento > 0 else "top",
+            fontsize=9,
+            color=TINTA,
+            zorder=5
+        )
+
+        if eh_inicio or eh_saida:
+            cor_destaque = "#059669" if eh_inicio else "#DC2626"
+
+            ax.plot(
+                x, y, "o",
+                markersize=15,
+                markerfacecolor="none",
+                markeredgecolor=cor_destaque,
+                markeredgewidth=2,
+                zorder=6
+            )
+
+            ax.annotate(
+                "INÍCIO" if eh_inicio else "SAÍDA",
+                (x, y),
+                textcoords="offset points",
+                xytext=(0, 40),
+                ha="center",
+                fontsize=11,
+                weight="bold",
+                color=cor_destaque,
+                zorder=7
+            )
 
     largura = max(len(v) for v in por_nivel.values())
-    ax.set_ylim(-largura / 2 - .8, largura / 2 + .8)
+
+    ax.set_ylim(
+        -largura / 2 - .45,
+        largura / 2 + .65
+    )
+
     ax.set_xlim(-.8, fundo + .8)
 
-    chaves = ordem_ch
-    ax.legend(handles=[Line2D([], [], marker="o", color="none",
-                              markerfacecolor=tons[ch],
-                              markeredgecolor="#fff", markersize=8,
-                              label=f"com {ch}" if ch else "sem chaves")
-                       for ch in chaves],
-              loc="upper center", bbox_to_anchor=(.5, -.08),
-              ncol=len(chaves), fontsize=8.5, frameon=False)
-
-    ax.set_xlabel("nível da BFS  (número de passos desde o início)",
-                  fontsize=9.5, color=TINTA2)
+    ax.set_xticks(range(fundo + 1))
     ax.set_yticks([])
-    ax.tick_params(labelsize=7, colors=TINTA2, length=2)
+
+    ax.tick_params(
+        axis="x",
+        labelsize=10,
+        colors=TINTA2,
+        length=3
+    )
+
+    ax.set_xlabel(
+        "Nível da BFS (número de passos desde o início)",
+        fontsize=13,
+        color=TINTA2,
+        labelpad=12
+    )
+
     for lado in ("top", "right", "left"):
         ax.spines[lado].set_visible(False)
-    ax.spines["bottom"].set_color("#d3d7e0")
-    ax.set_title(f"Árvore BFS do grafo de estados — {nome}\n"
-                 f"{len(pos)} estados alcançáveis · profundidade {fundo} níveis",
-                 fontsize=11, weight="bold", color=TINTA, pad=10)
+
+    ax.spines["bottom"].set_color("#D3D7E0")
+
+    itens = [
+        Line2D(
+            [], [],
+            marker="o",
+            color="none",
+            markerfacecolor=tons[ch],
+            markeredgecolor="#FFFFFF",
+            markersize=10,
+            label=f"Com {ch}" if ch else "Sem chaves"
+        )
+        for ch in ordem_ch
+    ]
+
+    itens += [
+        Line2D(
+            [], [],
+            color=cor_arco,
+            lw=1.8,
+            label="Arco da árvore BFS"
+        ),
+        Line2D(
+            [], [],
+            color=cor_transicao,
+            lw=2.5,
+            label="Mudança de camada"
+        ),
+        Line2D(
+            [], [],
+            marker="o",
+            color="none",
+            markerfacecolor="none",
+            markeredgecolor="#059669",
+            markeredgewidth=2,
+            markersize=10,
+            label="Início"
+        ),
+        Line2D(
+            [], [],
+            marker="o",
+            color="none",
+            markerfacecolor="none",
+            markeredgecolor="#DC2626",
+            markeredgewidth=2,
+            markersize=10,
+            label="Saída"
+        )
+    ]
+
+    ax.legend(
+        handles=itens,
+        loc="upper center",
+        bbox_to_anchor=(.5, -.18),
+        ncol=6,
+        fontsize=12,
+        frameon=False,
+        handlelength=2.2,
+        columnspacing=2
+    )
+
+    ax.set_title(
+        f"Árvore BFS do grafo de estados — {nome}\n"
+        f"{len(pos)} estados alcançáveis · "
+        f"profundidade máxima: {fundo} passos",
+        fontsize=20,
+        weight="bold",
+        color=TINTA,
+        pad=18
+    )
+
     fig.tight_layout()
-    fig.savefig(saida, dpi=160, bbox_inches="tight", facecolor="#fcfcfb")
+
+    fig.savefig(
+        saida,
+        dpi=200,
+        bbox_inches="tight",
+        facecolor="#FCFCFB"
+    )
+
     plt.close(fig)
+
     return saida
 
 
