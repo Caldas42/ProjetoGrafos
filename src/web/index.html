@@ -384,6 +384,43 @@
   .avd-intro{font-size:.85rem;color:var(--txt2);margin:0}
   /* [IA] Claude Code – front/UX (celular: caminho do notebook e nomes de arquivo quebram linha, sem rolagem lateral) */
   .avd-intro .mono{overflow-wrap:anywhere}
+  .avd-resumo {
+    padding: 1.2rem;
+    line-height: 1.7;
+  }
+
+  .avd-resumo h4 {
+    margin: 0 0 .6rem;
+    font-size: 1rem;
+    color: var(--txt);
+  }
+
+  .avd-resumo p {
+    margin: .5rem 0;
+    font-size: .9rem;
+    color: var(--txt2);
+    white-space: pre-line;
+  }
+
+  .avd-pergunta {
+    padding: 1.2rem;
+    margin-bottom: .3rem;
+  }
+
+  .avd-cabecalho {
+    padding: 1.2rem;
+  }
+
+  .avd-cabecalho h2 {
+    margin: 0 0 .5rem;
+    font-size: 1.4rem;
+  }
+
+  .avd-cabecalho p {
+    margin: 0;
+    color: var(--txt2);
+    line-height: 1.6;
+  }
   .figura{min-width:0}
   .figura figcaption{flex-wrap:wrap}
   .figura figcaption small{white-space:normal;overflow-wrap:anywhere}
@@ -2058,54 +2095,209 @@ function ResultadosSalvos({rel, erro, verCiclo, rodando}){
 
 // ------------------------------------------------------------------ parte 2: AVD (figuras exportadas do notebook)
 const SECOES_AVD = [
-  {id: "exploratoria", titulo: "Análise exploratória"},
-  {id: "explanatoria", titulo: "Análise explanatória"},
+  {
+    id: "exploratoria",
+    titulo: "Análise exploratória",
+    resumo: `A análise exploratória e explanatória do dataset Bitcoin Alpha Trust Weight Signed Network foi desenvolvida em um Jupyter Notebook, disponibilizado no diretório docs/. Foram utilizadas as bibliotecas Pandas, NumPy, Matplotlib, Seaborn e SciPy para o tratamento, a exploração estatística e a visualização dos dados.
+            A análise foi organizada a partir dos princípios estrutural, distribucional e relacional, juntamente com a identificação e o tratamento de dados faltantes e outliers. Posteriormente, os resultados obtidos serviram como base para a elaboração da análise explanatória.
+            `,
+  },
+  {
+    id: "explanatoria",
+    titulo: "Análise explanatória",
+    resumo: `Para responder à pergunta, foram elaboradas duas visualizações explanatórias. A primeira analisa a evolução temporal das avaliações extremas de confiança e desconfiança durante o período de maior atividade da rede, entre 2011 e 2014. A segunda investiga os usuários que receberam o maior volume de avaliações, relacionando a quantidade de interações recebidas com suas respectivas reputações médias.
+            As visualizações foram construídas utilizando atributos pré-atentivos, como cores, posicionamento, comprimento de barras e marcadores, buscando direcionar a atenção do leitor para as informações de maior relevância. Foram utilizadas cores de destaque para representar avaliações positivas e cores de alerta para evidenciar situações de desconfiança.
+            `,
+  },
 ];
 
-function AbaAVD(){
+// [IA] ChatGPT - organizacao visual dos textos e figuras de AVD
+function AbaAVD({pergunta}){
   const {dados, erro} = useDados("api/parte2/figuras");
+
   const [lupa, setLupa] = useState(null);
-  const [largas, setLargas] = useState({});      // figuras muito largas (ex.: um painel por ano) ocupam a linha toda
+  const [largas, setLargas] = useState({});
+
   useEffect(() => {
     if (!lupa) return;
-    const f = e => { if (e.key === "Escape") setLupa(null); };
-    window.addEventListener("keydown", f);
-    return () => window.removeEventListener("keydown", f);
+
+    const fechar = e => {
+      if (e.key === "Escape") {
+        setLupa(null);
+      }
+    };
+
+    window.addEventListener("keydown", fechar);
+
+    return () => {
+      window.removeEventListener("keydown", fechar);
+    };
   }, [lupa]);
-  if (erro) return html`<div className="bloco"><div className="aviso erro" style=${{marginTop: 0}}>${erro}</div></div>`;
-  if (!dados) return html`<div className="bloco">Carregando…</div>`;
+
+  if (erro) {
+    return html`
+      <div className="bloco">
+        <div className="aviso erro">
+          ${erro}
+        </div>
+      </div>
+    `;
+  }
+
+  if (!dados) {
+    return html`
+      <div className="bloco">
+        Carregando visualizações…
+      </div>
+    `;
+  }
+
   const faltando = dados.filter(f => !f.existe).length;
+
   return html`
-    <div style=${{display: "flex", flexDirection: "column", gap: ".9rem"}}>
-      <p className="avd-intro">${"Gráficos escolhidos pelo grupo, exportados do notebook "}
-        <span className="mono">docs/Analise_Exploratoria_e_Explanatoria_do_Dataset_Bitcoin_Alpha_Trust_Weight_Signed_Network.ipynb</span>
-        ${" para "}<span className="mono">out/parte2/</span>. Clique num gráfico para ampliar.</p>
-      ${faltando > 0 && html`<div className="aviso alerta" style=${{marginTop: 0}}><b>${faltando} figura(s) ainda não exportada(s)</b>
-        Rode <code>python -m src.parte2.exportar_figuras</code>.</div>`}
+    <div className="secao-resultados">
+
+      <section className="cartao avd-cabecalho">
+        <h2>Análise e Visualização de Dados</h2>
+
+        <p>
+          Análises exploratória e explanatória realizadas
+          pelo grupo sobre o dataset Bitcoin Alpha.
+        </p>
+      </section>
+
+      ${faltando > 0 && html`
+        <div className="aviso alerta">
+          <b>${faltando} figura(s) não encontrada(s)</b>
+          Rode
+          <code>
+            python -m src.parte2.exportar_figuras
+          </code>.
+        </div>
+      `}
+
       ${SECOES_AVD.map(s => {
-        // [IA] Claude Code – front/UX (AVD em duas secoes; sem campo de nota)
-        const figs = dados.filter(f => f.secao === s.id);
-        if (!figs.length) return null;
+        const figs = dados.filter(
+          f => f.secao === s.id
+        );
+
         return html`
-        <section key=${s.id} className="secao-avd" aria-labelledby=${"avd-" + s.id}>
-          <h3 id=${"avd-" + s.id}>${s.titulo}<small>células ${figs.map(f => f.celula).join(", ")} do notebook</small></h3>
-          <div className="grade-avd">
-            ${figs.map(f => html`
-              <figure key=${f.arquivo} className=${"cartao figura" + (largas[f.arquivo] ? " larga" : "")}>
-                <figcaption><b>${f.titulo}</b><small className="mono">${f.arquivo}</small></figcaption>
-                ${f.existe
-                  ? html`<div className="papel" onClick=${() => setLupa(f)} role="button" tabIndex="0" aria-label=${"Ampliar: " + f.titulo}
-                              onKeyDown=${e => e.key === "Enter" && setLupa(f)}>
-                           <img src=${"parte2/figuras/" + f.arquivo} alt=${f.titulo} loading="lazy"
-                                onLoad=${e => { const i = e.target; if (i.naturalWidth > 2.6 * i.naturalHeight) setLargas(m => ({...m, [f.arquivo]: true})); }}/></div>`
-                  : html`<div className="aviso neutro">arquivo não encontrado em out/parte2/</div>`}
-              </figure>`)}
-          </div>
-        </section>`;
+          <section
+            key=${s.id}
+            className="secao-avd"
+            aria-labelledby=${"avd-" + s.id}>
+
+            <h3 id=${"avd-" + s.id}>
+              ${s.titulo}
+              <small>
+                ${figs.length} visualizações
+              </small>
+            </h3>
+
+            ${s.id === "explanatoria" && html`
+              <blockquote className="pergunta avd-pergunta">
+
+                <span className="rot">
+                  Pergunta de pesquisa
+                </span>
+
+                <p>
+                  ${pergunta || "Pergunta de pesquisa indisponível."}
+                </p>
+
+                <cite>
+                  Notebook de AVD do grupo
+                </cite>
+
+              </blockquote>
+            `}
+
+            <div className="cartao avd-resumo">
+              <h4>Resumo da análise</h4>
+              <p>${s.resumo}</p>
+            </div>
+
+            <div className="grade-avd">
+
+              ${figs.map(f => html`
+                <figure
+                  key=${f.arquivo}
+                  className=${"cartao figura" +
+                    (largas[f.arquivo] ? " larga" : "")}>
+
+                  <figcaption>
+                    <b>${f.titulo}</b>
+                  </figcaption>
+
+                  ${f.existe ? html`
+                    <div
+                      className="papel"
+                      role="button"
+                      tabIndex="0"
+                      aria-label=${"Ampliar: " + f.titulo}
+                      onClick=${() => setLupa(f)}
+                      onKeyDown=${e => {
+                        if (
+                          e.key === "Enter" ||
+                          e.key === " "
+                        ) {
+                          e.preventDefault();
+                          setLupa(f);
+                        }
+                      }}>
+
+                      <img
+                        src=${"parte2/figuras/" + f.arquivo}
+                        alt=${f.titulo}
+                        loading="lazy"
+                        onLoad=${e => {
+                          const i = e.target;
+
+                          if (
+                            i.naturalWidth >
+                            2.6 * i.naturalHeight
+                          ) {
+                            setLargas(m => ({
+                              ...m,
+                              [f.arquivo]: true
+                            }));
+                          }
+                        }}
+                      />
+
+                    </div>
+                  ` : html`
+                    <div className="aviso neutro">
+                      Figura não encontrada.
+                    </div>
+                  `}
+
+                </figure>
+              `)}
+
+            </div>
+
+          </section>
+        `;
       })}
-      ${lupa && html`<div className="lupa" onClick=${() => setLupa(null)} role="dialog" aria-label=${lupa.titulo}>
-        <img src=${"parte2/figuras/" + lupa.arquivo} alt=${lupa.titulo}/></div>`}
-    </div>`;
+
+      ${lupa && html`
+        <div
+          className="lupa"
+          role="dialog"
+          aria-label=${lupa.titulo}
+          onClick=${() => setLupa(null)}>
+
+          <img
+            src=${"parte2/figuras/" + lupa.arquivo}
+            alt=${lupa.titulo}
+          />
+
+        </div>
+      `}
+
+    </div>
+  `;
 }
 
 // ------------------------------------------------------------------ parte 2: pagina
@@ -2263,7 +2455,11 @@ function Parte2({tema, visivel, aba, setAba}){
         </div>
       </div>
       ${aba === "resultados" && html`<${ResultadosSalvos} rel=${rel.dados} erro=${rel.erro} verCiclo=${verCiclo} rodando=${rodando}/>`}
-      ${aba === "avd" && html`<${AbaAVD}/>`}
+      ${aba === "avd" && html`
+        <${AbaAVD}
+          pergunta=${r?.pergunta}
+        />
+      `}
     </main>`;
 }
 
