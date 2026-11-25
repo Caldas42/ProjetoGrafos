@@ -22,6 +22,13 @@ grafo_sem_ciclo = {
     "D": [],
 }
 
+grafo_classificacao = {
+    "A": [("B", 1), ("C", 1), ("D", 1)],
+    "B": [("C", 1)],
+    "C": [("A", 1)],
+    "D": [("C", 1)]
+}
+
 
 def test_visita_todos_os_alcancaveis():
     estado, _, _ = algorithms.dfs(grafo_sem_ciclo, "A")
@@ -46,22 +53,22 @@ def test_respeita_a_ordem_da_lista_de_adjacencia():
     assert t["B"] < t["C"]
 
 
-@pytest.mark.skipif(
-    not hasattr(algorithms, "classificar_arcos"),
-    reason="classificar_arcos() ainda nao existe em algorithms.py",
-)
 def test_classificacao_de_arcos():
-    arcos = algorithms.classificar_arcos(grafo_sem_ciclo, "A")
+    arcos = algorithms.classificar_arcos(
+        grafo_classificacao, "A"
+    )
+
     tipos = {(u, v): tipo for u, v, tipo in arcos}
-    assert tipos[("A", "B")] == "arvore"
-    assert tipos[("A", "C")] == "arvore"
-    assert "cruzamento" in tipos.values() or "avanco" in tipos.values()
 
+    assert tipos == {
+        ("A", "B"): "arvore",
+        ("B", "C"): "arvore",
+        ("C", "A"): "retorno",
+        ("A", "C"): "avanco",
+        ("A", "D"): "arvore",
+        ("D", "C"): "cruzamento"
+    }
 
-@pytest.mark.skipif(
-    not hasattr(algorithms, "classificar_arcos"),
-    reason="classificar_arcos() ainda nao existe em algorithms.py",
-)
 def test_arco_de_retorno_indica_ciclo():
     arcos = algorithms.classificar_arcos(grafo_com_ciclo, "A")
     assert any(tipo == "retorno" for _, _, tipo in arcos)

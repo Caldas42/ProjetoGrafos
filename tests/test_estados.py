@@ -16,18 +16,22 @@ def grade(linhas):
 
 MAPA_MINIMO = ["#####", "#SaG#", "#####"]
 
-ESTADOS_A_MAO = None
-ARCOS_A_MAO = None
+ESTADOS_A_MAO = 4
+ARCOS_A_MAO = 4
 
 
-@pytest.mark.skipif(
-    ESTADOS_A_MAO is None,
-    reason="preencha ESTADOS_A_MAO e ARCOS_A_MAO com o calculo feito a mao (exigido no PDF)",
-)
 def test_bate_com_o_calculo_a_mao():
     g = construir_g_est(grade(MAPA_MINIMO))
-    assert gr.ordem(g) - 1 == ESTADOS_A_MAO
-    assert gr.tamanho(g) == ARCOS_A_MAO
+
+    sem_alvo = gr.subgrafo_induzido(
+        g, [e for e in g if e != ALVO]
+    )
+
+    assert gr.ordem(sem_alvo) == ESTADOS_A_MAO
+    assert gr.tamanho(sem_alvo) == ARCOS_A_MAO
+
+    assert gr.ordem(g) == ESTADOS_A_MAO + 1
+    assert gr.tamanho(g) == ARCOS_A_MAO + 1
 
 
 def test_estado_inicial_sem_chaves_e_sem_bonus():
