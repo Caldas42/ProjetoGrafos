@@ -358,6 +358,19 @@ def gerar(pasta="out/parte1"):
                                 comparacao))
     return gerados
 
+def medir_memoria(funcao, grafo, fonte):
+    import tracemalloc
+
+    tracemalloc.start()
+
+    try:
+        funcao(grafo, fonte)
+    finally:
+        _, pico = tracemalloc.get_traced_memory()
+        tracemalloc.stop()
+
+    return pico
+
 # [IA] ChatGPT - orquestracao e geracao dos resultados da Parte 2
 
 def gerar_buscas_parte2(grafo, fontes):
@@ -386,7 +399,8 @@ def gerar_buscas_parte2(grafo, fontes):
             "pais": pais,
             "vertices_visitados": len(distancias),
             "tempos_s": tempos,
-            "tempo_medio_s": sum(tempos) / 5
+            "tempo_medio_s": sum(tempos) / 5,
+            "memoria_pico_bytes": medir_memoria(bfs, grafo, fonte)
         })
 
         tempos = []
@@ -417,7 +431,8 @@ def gerar_buscas_parte2(grafo, fontes):
             "arcos": arcos,
             "tem_ciclo": tipos["retorno"] > 0,
             "tempos_s": tempos,
-            "tempo_medio_s": sum(tempos) / 5
+            "tempo_medio_s": sum(tempos) / 5,
+            "memoria_pico_bytes": medir_memoria(dfs_completa, grafo, fonte)
         })
 
     return resultados
@@ -462,7 +477,8 @@ def gerar_bellman_ford_parte2(grafo):
             "tem_ciclo_negativo": bool(ciclo),
             "ciclo": ciclo,
             "tempos_s": tempos,
-            "tempo_medio_s": sum(tempos) / 5
+            "tempo_medio_s": sum(tempos) / 5,
+            "memoria_pico_bytes": medir_memoria(bellman_ford, g, fonte)
         }
 
         if ciclo:
@@ -492,19 +508,20 @@ def gerar_dijkstra_parte2(grafo, fonte):
     from src.graphs.algorithms import dijkstra
     from time import perf_counter
 
+    def executar(grafo, fonte):
+        try:
+            dijkstra(grafo, fonte)
+        except ValueError as erro:
+            return str(erro)
+
+        raise RuntimeError("Dijkstra deveria recusar o grafo.")
+
     tempos = []
     mensagem = None
 
     for _ in range(5):
         inicio = perf_counter()
-
-        try:
-            dijkstra(grafo, fonte)
-        except ValueError as erro:
-            mensagem = str(erro)
-        else:
-            raise RuntimeError("Dijkstra deveria recusar o grafo.")
-
+        mensagem = executar(grafo, fonte)
         tempos.append(perf_counter() - inicio)
 
     return {
@@ -512,7 +529,8 @@ def gerar_dijkstra_parte2(grafo, fonte):
         "status": "RECUSA",
         "motivo": mensagem,
         "tempos_s": tempos,
-        "tempo_medio_s": sum(tempos) / len(tempos)
+        "tempo_medio_s": sum(tempos) / len(tempos),
+        "memoria_pico_bytes": medir_memoria(executar, grafo, fonte)
     }
 
 def gerar_parte2(
