@@ -409,12 +409,28 @@ const lerTema = () => {
   return window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
 };
 const cache = {};
+const dadosCarregados = {};
+// [IA] ChatGPT - reutilizacao imediata dos dados
 async function pegar(url){
-  if (!cache[url]) cache[url] = fetch(url).then(async r => {
-    const j = await r.json();
-    if (!r.ok) throw new Error(j.erro || ("erro " + r.status));
-    return j;
-  }).catch(e => { delete cache[url]; throw e; });
+  if (!cache[url]) {
+    cache[url] = fetch(url)
+      .then(async r => {
+        const j = await r.json();
+
+        if (!r.ok) {
+          throw new Error(j.erro || ("erro " + r.status));
+        }
+
+        dadosCarregados[url] = j;
+
+        return j;
+      })
+      .catch(e => {
+        delete cache[url];
+        throw e;
+      });
+  }
+
   return cache[url];
 }
 // [IA] ChatGPT - evitar dados antigos ao trocar de recorte
@@ -445,7 +461,10 @@ function useDados(url){
 
   return estado.url === url
     ? estado
-    : {dados: null, erro: null};
+    : {
+        dados: dadosCarregados[url] || null,
+        erro: null
+      };
 }
 
 const PARTES = [
@@ -671,7 +690,12 @@ function DesenhoGrafo({
       {barnesHutOptimize: true, outboundAttractionDistribution: true, strongGravityMode: false, gravity: 1, scalingRatio: 2});
     const fa = new FA2.FA2Layout(g, {settings: ajustes});
     layoutRef.current = fa;
-    const DURACAO = 9000, t0 = performance.now();
+    const DURACAO =
+      g.order <= 400 ? 2500 :
+      g.order <= 2000 ? 5000 :
+      9000;
+
+    const t0 = performance.now();
     setLayout({rodando: true, pct: 0});
     fa.start();
     const passo = () => {
@@ -696,6 +720,9 @@ function DesenhoGrafo({
     if (!dados || !caixa.current) return;
     const g = montarGrafo(dados);
     grafoRef.current = g;
+
+    const layoutSalvo = lerLayoutSalvo(g);
+
     const SigmaCls = Sigma.default || Sigma.Sigma || Sigma;
     const s = new SigmaCls(g, caixa.current, {
       defaultEdgeType: "arrow", renderEdgeLabels: false, zIndex: true, hideEdgesOnMove: false,
@@ -709,10 +736,21 @@ function DesenhoGrafo({
     s.on("clickNode", ({node}) => aoClicarVertice(Number(node)));
     s.on("enterNode", () => { caixa.current.style.cursor = "pointer"; });
     s.on("leaveNode", () => { caixa.current.style.cursor = ""; });
-    if (!lerLayoutSalvo(g)) rodarLayout();
+    if (!layoutSalvo) rodarLayout();
+    // [IA] ChatGPT - preservar layout ao trocar de recorte
     return () => {
-      if (layoutRef.current){ layoutRef.current.kill(); layoutRef.current = null; }
-      s.kill(); sigmaRef.current = null;
+      if (layoutRef.current) {
+        layoutRef.current.stop();
+        layoutRef.current.kill();
+        layoutRef.current = null;
+      }
+
+      salvarLayout(g);
+
+      s.kill();
+
+      sigmaRef.current = null;
+      grafoRef.current = null;
     };
   }, [dados]);
 
@@ -1468,7 +1506,7 @@ function Parte2({tema, visivel, aba, setAba}){
 
         <div className="area-grafo">
           <${DesenhoGrafo}
-            key=${percentual}
+            key=${"grafo-" + percentual}
             tema=${tema}
             visivel=${visivel && aba === "grafo"}
             destaque=${destaque}
@@ -1480,7 +1518,7 @@ function Parte2({tema, visivel, aba, setAba}){
           />
 
           <${PainelAlgoritmos}
-            key=${percentual}
+            key=${"painel-" + percentual}
             vertices=${vertices}
             lista=${lista}
             relatorio=${rel.erro
