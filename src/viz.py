@@ -1100,43 +1100,158 @@ def figura_arvore_bfs(caminho_mapa="data/mapas/m02_uma_chave.txt",
 
 def figura_heatmap(caminho_mapa="data/mapas/m08_grande.txt",
                    saida="out/parte1/heatmap_m08.png"):
+
+    from matplotlib.colors import ListedColormap, BoundaryNorm
+
     nome = os.path.splitext(os.path.basename(caminho_mapa))[0]
     grade = ler_mapa(caminho_mapa)
     grafo = construir_g_est(grade)
+
     n_l, n_c = len(grade), len(grade[0])
 
     mult = [[0] * n_c for _ in range(n_l)]
+
     for e in grafo:
         if e != ALVO:
             mult[e[0]][e[1]] += 1
+
     maximo = max(max(linha) for linha in mult)
-    casas_no_max = sum(1 for l in range(n_l) for c in range(n_c) if mult[l][c] == maximo)
 
-    cmap = LinearSegmentedColormap.from_list("seq_azul", RAMPA_SEQ)
-    fig, ax = plt.subplots(figsize=(max(8, n_c * .22), max(5, n_l * .22 + 1.8)))
+    casas_no_max = sum(
+        1 for l in range(n_l)
+        for c in range(n_c)
+        if grade[l][c] != "#" and mult[l][c] == maximo
+    )
 
-    dados = [[float("nan") if grade[l][c] == "#" else mult[l][c] for c in range(n_c)]
-             for l in range(n_l)]
-    cmap.set_bad(CORES_CASA["#"])
-    im = ax.imshow(dados, cmap=cmap, vmin=0, vmax=maximo, interpolation="nearest")
+    casas_livres = sum(
+        1 for l in range(n_l)
+        for c in range(n_c)
+        if grade[l][c] != "#"
+    )
 
-    ax.set_xlabel("coluna", fontsize=9, color=TINTA2)
-    ax.set_ylabel("linha", fontsize=9, color=TINTA2)
-    ax.tick_params(labelsize=7, colors=TINTA2, length=2)
+    paleta = [
+        "#EFF6FF",
+        "#BFDBFE",
+        "#93C5FD",
+        "#60A5FA",
+        "#2563EB",
+        "#082F79"
+    ]
+
+    cor_parede = "#52525B"
+
+    cmap = ListedColormap(paleta)
+    cmap.set_bad(cor_parede)
+
+    limites = [i - .5 for i in range(len(paleta) + 1)]
+    norm = BoundaryNorm(limites, cmap.N)
+
+    dados = [
+        [
+            float("nan") if grade[l][c] == "#" else mult[l][c]
+            for c in range(n_c)
+        ]
+        for l in range(n_l)
+    ]
+
+    fig, ax = plt.subplots(figsize=(20, 10))
+
+    im = ax.imshow(
+        dados,
+        cmap=cmap,
+        norm=norm,
+        interpolation="nearest",
+        aspect="equal"
+    )
+
+    ax.set_xlabel(
+        "Coluna",
+        fontsize=13,
+        color=TINTA2,
+        labelpad=10
+    )
+
+    ax.set_ylabel(
+        "Linha",
+        fontsize=13,
+        color=TINTA2,
+        labelpad=10
+    )
+
+    ax.tick_params(
+        labelsize=11,
+        colors=TINTA2,
+        length=3
+    )
+
     for lado in ax.spines.values():
-        lado.set_color("#d3d7e0")
+        lado.set_color("#D3D7E0")
 
-    barra = fig.colorbar(im, ax=ax, fraction=.026, pad=.015)
-    barra.set_label("estados por casa (multiplicidade)", fontsize=9, color=TINTA2)
-    barra.ax.tick_params(labelsize=7, colors=TINTA2, length=2)
-    barra.outline.set_edgecolor("#d3d7e0")
+    barra = fig.colorbar(
+        im,
+        ax=ax,
+        fraction=.025,
+        pad=.025,
+        shrink=.82,
+        ticks=range(6),
+        drawedges=True
+    )
 
-    ax.set_title(f"Multiplicidade das casas — {nome}\n"
-                 f"{len(grafo)-1} estados em {sum(1 for l in range(n_l) for c in range(n_c) if grade[l][c] != '#')} casas livres · "
-                 f"máximo {maximo} (em {casas_no_max} casa(s)) · cinza escuro = parede",
-                 fontsize=11, weight="bold", color=TINTA, pad=10)
-    fig.savefig(saida, dpi=160, bbox_inches="tight", facecolor="#fcfcfb")
+    barra.set_label(
+        "Estados por casa (multiplicidade)",
+        fontsize=13,
+        color=TINTA2,
+        labelpad=12
+    )
+
+    barra.ax.tick_params(
+        labelsize=12,
+        colors=TINTA,
+        length=0,
+        pad=8
+    )
+
+    barra.outline.set_edgecolor("#D3D7E0")
+
+    barra.dividers.set_color("#FFFFFF")
+    barra.dividers.set_linewidth(1.5)
+
+    ax.legend(
+        handles=[
+            Patch(
+                facecolor=cor_parede,
+                edgecolor="#D3D7E0",
+                label="Parede (intransponível)"
+            )
+        ],
+        loc="upper center",
+        bbox_to_anchor=(.5, -.10),
+        fontsize=13,
+        frameon=False,
+        handlelength=2.5
+    )
+
+    ax.set_title(
+        f"Multiplicidade das casas — {nome}\n"
+        f"{len(grafo)-1} estados em {casas_livres} casas livres · "
+        f"multiplicidade máxima: {maximo} ({casas_no_max} casas)",
+        fontsize=19,
+        weight="bold",
+        color=TINTA,
+        pad=18
+    )
+
+    fig.tight_layout()
+
+    fig.savefig(
+        saida,
+        dpi=200,
+        bbox_inches="tight",
+        facecolor="#FCFCFB"
+    )
+
     plt.close(fig)
+
     return saida, maximo, casas_no_max
 
 
