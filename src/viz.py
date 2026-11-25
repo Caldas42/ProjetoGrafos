@@ -426,7 +426,9 @@ def figura_camadas(caminho_mapa="data/mapas/m02_uma_chave.txt",
                 continue
             x1, y1 = pos(destino)
             if destino[2] == origem[2]:
-                ax.plot([x0, x1], [y0, y1], color="#c3c7d2", lw=.9, zorder=1)
+                ax.annotate("", (x1, y1), (x0, y0), zorder=1,
+                            arrowprops=dict(arrowstyle="->", color="#c3c7d2",
+                                            lw=1.0, shrinkA=3, shrinkB=3))
                 dentro += 1
             else:
                 ax.annotate("", (x1, y1), (x0, y0), zorder=5,
@@ -440,6 +442,9 @@ def figura_camadas(caminho_mapa="data/mapas/m02_uma_chave.txt",
         x, y = pos(e)
         ax.plot(x, y, "o", markersize=7, color=tons[faixa[e[2]]],
                 markeredgecolor="#ffffff", markeredgewidth=1.0, zorder=4)
+
+        ax.text(x + 0.18, y - 0.12, rotular(e),
+                fontsize=5.5, color=TINTA, zorder=6)
 
     ax.set_xlim(-3.4, n_c + .6)
     ax.invert_yaxis()
@@ -502,6 +507,9 @@ def figura_arvore_bfs(caminho_mapa="data/mapas/m02_uma_chave.txt",
         cor = tons[no[2]]
         ax.plot(x, y, "o", markersize=5.6, color=cor,
                 markeredgecolor="#ffffff", markeredgewidth=.9, zorder=3)
+
+        ax.text(x + 0.08, y + 0.08, rotular(no),
+                fontsize=5.2, color=TINTA, zorder=4)
 
     for n in range(0, fundo + 1, max(1, fundo // 12)):
         ax.axvline(n, color="#e7eaf0", lw=.7, zorder=0)
