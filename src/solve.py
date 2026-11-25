@@ -488,6 +488,33 @@ def gerar_bellman_ford_parte2(grafo):
 
     return resultados
 
+def gerar_dijkstra_parte2(grafo, fonte):
+    from src.graphs.algorithms import dijkstra
+    from time import perf_counter
+
+    tempos = []
+    mensagem = None
+
+    for _ in range(5):
+        inicio = perf_counter()
+
+        try:
+            dijkstra(grafo, fonte)
+        except ValueError as erro:
+            mensagem = str(erro)
+        else:
+            raise RuntimeError("Dijkstra deveria recusar o grafo.")
+
+        tempos.append(perf_counter() - inicio)
+
+    return {
+        "fonte": fonte,
+        "status": "RECUSA",
+        "motivo": mensagem,
+        "tempos_s": tempos,
+        "tempo_medio_s": sum(tempos) / len(tempos)
+    }
+
 def gerar_parte2(
     dataset="data/dataset_parte2/soc-sign-bitcoinalpha.csv",
     pasta="out/parte2"
@@ -510,6 +537,7 @@ def gerar_parte2(
     }
 
     relatorio["resultados"]["BELLMAN_FORD"] = gerar_bellman_ford_parte2(grafo)
+    relatorio["resultados"]["DIJKSTRA"] = gerar_dijkstra_parte2(grafo, fontes[0])
 
     os.makedirs(pasta, exist_ok=True)
 
