@@ -1,4 +1,3 @@
-; g02_porao - mapa 2 do grupo, o mapa armadilha
 ; [IA] Claude Code - desenho do mapa, conferido pelo grupo com tests/test_mapas_grupo.py
 ; As tres esteiras 'v' do meio derrubam o jogador num porao sem saida:
 ; de la so se sobe pelas proprias esteiras, que so permitem descer.

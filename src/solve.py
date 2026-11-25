@@ -533,6 +533,101 @@ def gerar_dijkstra_parte2(grafo, fonte):
         "memoria_pico_bytes": medir_memoria(executar, grafo, fonte)
     }
 
+def gerar_escalabilidade_parte2(grafo):
+    from random import Random
+    from time import perf_counter
+    from src.graphs.algorithms import bfs, dfs_completa, dijkstra, bellman_ford
+
+    fonte = 7188
+
+    origem_negativa, destino_negativo = next(
+        (u, v)
+        for u, vizinhos in grafo.items()
+        for v, peso in vizinhos
+        if peso < 0
+    )
+
+    obrigatorios = list(dict.fromkeys([
+        fonte, origem_negativa, destino_negativo
+    ]))
+
+    restantes = sorted(set(grafo) - set(obrigatorios))
+    Random(42).shuffle(restantes)
+
+    vertices = obrigatorios + restantes
+
+    algoritmos = {
+        "BFS": bfs,
+        "DFS": dfs_completa,
+        "DIJKSTRA": dijkstra,
+        "BELLMAN_FORD": bellman_ford
+    }
+
+    resultados = []
+
+    for percentual in [10, 50, 100]:
+        quantidade = int(len(grafo) * percentual / 100)
+        selecionados = set(vertices[:quantidade])
+
+        subgrafo = {
+            u: [
+                (v, peso)
+                for v, peso in grafo[u]
+                if v in selecionados
+            ]
+            for u in grafo
+            if u in selecionados
+        }
+
+        resultado = {
+            "percentual": percentual,
+            "vertices": len(subgrafo),
+            "arestas": sum(len(v) for v in subgrafo.values()),
+            "fonte": fonte,
+            "algoritmos": {}
+        }
+
+        for nome, funcao in algoritmos.items():
+
+            def executar(g, f):
+                try:
+                    return funcao(g, f)
+                except ValueError as erro:
+                    if nome != "DIJKSTRA":
+                        raise
+
+                    return str(erro)
+
+            tempos = []
+
+            for _ in range(5):
+                inicio = perf_counter()
+                saida = executar(subgrafo, fonte)
+                tempos.append(perf_counter() - inicio)
+
+            dados = {
+                "status": "OK",
+                "tempos_s": tempos,
+                "tempo_medio_s": sum(tempos) / len(tempos),
+                "memoria_pico_bytes": medir_memoria(
+                    executar, subgrafo, fonte
+                )
+            }
+
+            if nome == "DIJKSTRA" and isinstance(saida, str):
+                dados["status"] = "RECUSA"
+                dados["motivo"] = saida
+
+            if nome == "BELLMAN_FORD" and saida[2]:
+                dados["status"] = "CICLO_NEGATIVO"
+                dados["ciclo"] = saida[2]
+
+            resultado["algoritmos"][nome] = dados
+
+        resultados.append(resultado)
+
+    return resultados
+
 def gerar_parte2(
     dataset="data/dataset_parte2/soc-sign-bitcoinalpha.csv",
     pasta="out/parte2"
@@ -556,6 +651,7 @@ def gerar_parte2(
 
     relatorio["resultados"]["BELLMAN_FORD"] = gerar_bellman_ford_parte2(grafo)
     relatorio["resultados"]["DIJKSTRA"] = gerar_dijkstra_parte2(grafo, fontes[0])
+    relatorio["escalabilidade"] = gerar_escalabilidade_parte2(grafo)
 
     os.makedirs(pasta, exist_ok=True)
 
