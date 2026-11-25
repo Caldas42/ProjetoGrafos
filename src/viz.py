@@ -21,6 +21,7 @@ import glob
 import json
 import os
 import sys
+import base64
 
 from src.graphs import graph as gr
 from src.graphs.estados import (
@@ -205,17 +206,78 @@ def _ler(caminho):
     with open(caminho, encoding="utf-8") as arquivo:
         return arquivo.read()
 
+def carregar_figuras_parte1():
+    arquivos = [
+        {
+            "arquivo": "percurso_m03.png",
+            "titulo": "Caminho de menor custo — m03",
+            "descricao": "Percurso de 91 passos e custo 99, destacando a aquisição das três chaves."
+        },
+        {
+            "arquivo": "percurso_m08.png",
+            "titulo": "Caminho de menor custo — m08",
+            "descricao": "Percurso de 396 passos e custo 482, dividido em cinco camadas de estados."
+        },
+        {
+            "arquivo": "camadas_m02.png",
+            "titulo": "Grafo de estados em camadas — m02",
+            "descricao": "Representação das duas camadas de estados, destacando a transição causada pela aquisição da chave."
+        },
+        {
+            "arquivo": "arvore_bfs_m02.png",
+            "titulo": "Árvore BFS — m02",
+            "descricao": "Árvore com 39 estados alcançáveis e profundidade máxima de 34 passos."
+        },
+        {
+            "arquivo": "heatmap_m08.png",
+            "titulo": "Heatmap de multiplicidade — m08",
+            "descricao": "Distribuição espacial dos estados por casa, com multiplicidade máxima de 5 em 165 casas."
+        }
+    ]
+
+    figuras = []
+
+    for item in arquivos:
+        caminho = os.path.join("out", "parte1", item["arquivo"])
+
+        if not os.path.isfile(caminho):
+            continue
+
+        with open(caminho, "rb") as arquivo:
+            dados = base64.b64encode(arquivo.read()).decode("ascii")
+
+        figuras.append({
+            **item,
+            "src": "data:image/png;base64," + dados
+        })
+
+    return figuras
 
 def _montar_pagina(dados):
-    """Junta modelo + bibliotecas + dados num unico HTML."""
     modelo = _ler(os.path.join(PASTA_WEB, "labirinto.html"))
+
     scripts = "\n".join(
-        "<script>\n" + _ler(os.path.join(PASTA_WEB, "vendor", nome)).replace("</script", "<\\/script") + "\n</script>"
+        "<script>\n"
+        + _ler(os.path.join(PASTA_WEB, "vendor", nome)).replace("</script", "<\\/script")
+        + "\n</script>"
         for nome in BIBLIOTECAS
     )
-    # "</" escapado para o JSON nao fechar a tag <script> por engano
-    json_dados = json.dumps(dados, ensure_ascii=False).replace("</", "<\\/")
-    return modelo.replace("__VENDOR__", scripts).replace("__DADOS__", json_dados)
+
+    json_dados = json.dumps(
+        dados, ensure_ascii=False
+    ).replace("</", "<\\/")
+
+    json_figuras = json.dumps(
+        carregar_figuras_parte1(),
+        ensure_ascii=False
+    ).replace("</", "<\\/")
+
+    return (
+        modelo
+        .replace("__VENDOR__", scripts)
+        .replace("__DADOS__", json_dados)
+        .replace("__FIGURAS_PARTE1__", json_figuras)
+    )
 
 
 def gerar_html(mapas=None, saida="out/parte1/labirinto_interativo.html"):

@@ -253,6 +253,120 @@
     .painel-abas{flex:none;height:22rem}
   }
   @media (max-width:560px){.casca{padding:.5rem}.dica{display:none}}
+    .galeria-p1{
+      flex:1;
+      min-height:0;
+      overflow-y:auto;
+      padding:1rem;
+      background:var(--card);
+      border:1px solid var(--linha);
+      border-radius:var(--r);
+  }
+
+  .galeria-p1-titulo{
+      margin-bottom:1.4rem;
+  }
+
+  .galeria-p1-titulo h2{
+      margin:0;
+      font-size:1.4rem;
+  }
+
+  .galeria-p1-titulo p{
+      color:var(--txt2);
+      margin:.4rem 0 0;
+      font-size:.85rem;
+  }
+
+  .galeria-p1-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:1rem;
+  }
+
+  .figura-p1{
+      margin:0;
+      padding:1rem;
+      background:var(--card2);
+      border:1px solid var(--linha);
+      border-radius:var(--r);
+      min-width:0;
+  }
+
+  .figura-p1 h3{
+      margin:0 0 .4rem;
+      font-size:1rem;
+  }
+
+  .figura-p1 p{
+      margin:0 0 .9rem;
+      font-size:.8rem;
+      color:var(--txt2);
+  }
+
+  .figura-p1 img{
+      display:block;
+      width:100%;
+      height:auto;
+      background:#fcfcfb;
+      border-radius:8px;
+  }
+
+  .figura-p1-ampliar{
+      display:block;
+      width:100%;
+      padding:0;
+      border:0;
+      background:none;
+      cursor:zoom-in;
+  }
+
+  .figura-p1-dica{
+      display:block;
+      margin-top:.6rem;
+      color:var(--txt3);
+      font-size:.7rem;
+      text-align:center;
+  }
+
+  .figura-p1-larga{
+      grid-column:1 / -1;
+  }
+
+  .figura-p1-modal{
+      position:fixed;
+      inset:0;
+      z-index:1000;
+      background:rgba(0,0,0,.85);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      padding:1rem;
+      gap:.7rem;
+  }
+
+  .figura-p1-modal img{
+      max-width:100%;
+      max-height:85vh;
+      object-fit:contain;
+      background:#fcfcfb;
+      border-radius:8px;
+  }
+
+  .figura-p1-modal-topo{
+      width:100%;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      color:#ffffff;
+  }
+
+  @media(max-width:900px){
+      .galeria-p1-grid{
+          grid-template-columns:1fr;
+      }
+  }
 </style>
 </head>
 <body>
@@ -263,6 +377,7 @@ __VENDOR__
 <script>
 "use strict";
 const DADOS = __DADOS__;
+const FIGURAS_PARTE1 = __FIGURAS_PARTE1__;
 
 (function(){
 if (!window.React || !window.ReactDOM || !window.htm){
@@ -478,6 +593,98 @@ function Pista({mapa, alg, k, dentro, presas, mostrarTrilha, idxBonus, dur}){
 }
 
 // ------------------------------------------------------------------ app
+
+function GaleriaParte1(){
+    const [ampliada, setAmpliada] = useState(null);
+
+    useEffect(() => {
+        const fechar = e => {
+            if (e.key === "Escape") setAmpliada(null);
+        };
+
+        window.addEventListener("keydown", fechar);
+
+        return () => window.removeEventListener("keydown", fechar);
+    }, []);
+
+    return html`
+        <section className="galeria-p1">
+            <div className="galeria-p1-titulo">
+                <h2>Visualizações da Parte 1</h2>
+                <p>
+                    Representações gráficas dos percursos,
+                    camadas, árvore BFS e multiplicidade dos estados.
+                </p>
+            </div>
+
+            <div className="galeria-p1-grid">
+                ${FIGURAS_PARTE1.map(f => html`
+                    <figure
+                        key=${f.arquivo}
+                        className=${"figura-p1" +
+                            (f.arquivo.includes("m08") ||
+                             f.arquivo.includes("arvore") ||
+                             f.arquivo.includes("camadas")
+                                ? " figura-p1-larga" : "")}
+                    >
+                        <figcaption>
+                            <h3>${f.titulo}</h3>
+                            <p>${f.descricao}</p>
+                        </figcaption>
+
+                        <button
+                            className="figura-p1-ampliar"
+                            onClick=${() => setAmpliada(f)}
+                            aria-label=${"Ampliar " + f.titulo}
+                        >
+                            <img
+                                src=${f.src}
+                                alt=${f.titulo}
+                                loading="lazy"
+                            />
+                        </button>
+
+                        <span className="figura-p1-dica">
+                            Clique na imagem para ampliar
+                        </span>
+                    </figure>
+                `)}
+            </div>
+
+            ${!FIGURAS_PARTE1.length && html`
+                <p className="vazio">
+                    Nenhuma figura disponível.
+                    Gere as visualizações pelo Python.
+                </p>
+            `}
+
+            ${ampliada && html`
+                <div
+                    className="figura-p1-modal"
+                    onClick=${() => setAmpliada(null)}
+                >
+                    <div className="figura-p1-modal-topo">
+                        <strong>${ampliada.titulo}</strong>
+
+                        <button
+                            className="icone"
+                            onClick=${() => setAmpliada(null)}
+                        >
+                            Fechar ×
+                        </button>
+                    </div>
+
+                    <img
+                        src=${ampliada.src}
+                        alt=${ampliada.titulo}
+                        onClick=${e => e.stopPropagation()}
+                    />
+                </div>
+            `}
+        </section>
+    `;
+}
+
 function Parte1({tema, setTema, aoVoltar, servidor}){
   const nomes = Object.keys(DADOS).sort((a, b) => {
     const grupoA = a.startsWith("g");
@@ -527,6 +734,7 @@ function Parte1({tema, setTema, aoVoltar, servidor}){
   const [cel, setCel] = useState(30);
   const [lado, setLado] = useState(1);          // quantos tabuleiros por linha
   const [aba, setAba] = useState("momentos");
+  const [verFiguras, setVerFiguras] = useState(false);
   const palcoRef = useRef(null);
 
   // algoritmo valido para o mapa atual
@@ -676,6 +884,16 @@ function Parte1({tema, setTema, aoVoltar, servidor}){
       <div className="marca" title="o mapa não é o grafo: cada casa vira vários estados">
         <div className="logo">1</div><h1>Parte 1 · Labirinto com chaves</h1>
       </div>
+      <button
+          className="ficha"
+          aria-pressed=${verFiguras}
+          onClick=${() => {
+              setTocando(false);
+              setVerFiguras(v => !v);
+          }}
+      >
+          ${verFiguras ? "Voltar ao labirinto" : "Visualizações"}
+      </button>
       <label className="grupo"><span className="rot-sel">Mapa</span>
         <select className="seletor" value=${nomeMapa} onChange=${e => setNomeMapa(e.target.value)} aria-label="Mapa">
           ${nomes.map(n => html`<option key=${n} value=${n}>${DADOS[n].enviado ? "★ " : ""}${n.replace(/^([mg]\d+)_/, "$1 · ").replace(/_/g, " ")} (${DADOS[n].linhas}×${DADOS[n].colunas})</option>`)}
@@ -728,7 +946,10 @@ function Parte1({tema, setTema, aoVoltar, servidor}){
       ${carga.tipo !== "carregando" && html`<button onClick=${() => setCarga(null)} aria-label="Fechar aviso">×</button>`}
     </div>`}
 
-    <div className="grelha">
+    ${verFiguras && html`<${GaleriaParte1}/>`}
+
+    <div className="grelha"
+        style=${{display:verFiguras ? "none" : undefined}}>
       <div className="cartao">
         <div className="palco" ref=${palcoRef} style=${{"--cel":cel + "px"}}>
           <div className="pistas" style=${{gridTemplateColumns:"repeat(" + Math.min(lado, pistas.length || 1) + ", auto)"}}>
