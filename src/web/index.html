@@ -254,7 +254,9 @@
   /* resultados salvos */
   .grade-res{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.9rem}
   .grade-res .largo{grid-column:1/-1}
-  @media (max-width:1100px){.grade-res{grid-template-columns:1fr}}
+  /* [IA] Claude Code – front/UX (celular: a tabela rola dentro do cartao, a pagina nao rola de lado) */
+  @media (max-width:1100px){.grade-res{grid-template-columns:minmax(0,1fr)}}
+  .grade-res>*{min-width:0}
   .bloco h4{margin:0 0 .2rem;font-size:1rem}
   .bloco .sub{margin:0 0 .6rem;font-size:.8rem;color:var(--txt3)}
   .rolar-x{overflow-x:auto}
@@ -268,6 +270,11 @@
 
   /* AVD */
   .avd-intro{font-size:.85rem;color:var(--txt2);margin:0}
+  /* [IA] Claude Code – front/UX (celular: caminho do notebook e nomes de arquivo quebram linha, sem rolagem lateral) */
+  .avd-intro .mono{overflow-wrap:anywhere}
+  .figura{min-width:0}
+  .figura figcaption{flex-wrap:wrap}
+  .figura figcaption small{white-space:normal;overflow-wrap:anywhere}
   .grade-avd{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.9rem;align-items:start}
   .figura.larga{grid-column:1/-1}
   /* [IA] Claude Code – front/UX (secoes da aba AVD) */
