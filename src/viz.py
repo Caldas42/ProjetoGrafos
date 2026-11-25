@@ -343,52 +343,214 @@ def figura_percurso(caminho_mapa, saida=None):
     saida = saida or f"out/parte1/percurso_{nome.split('_')[0]}.png"
     grade = ler_mapa(caminho_mapa)
     caminho, dist, alg = _percurso(grade)
+
     if caminho is None:
         print(f"  ! {nome}: nenhum algoritmo devolveu caminho")
         return None
 
     ordem_camadas = []
+
     for e in caminho:
         if e[2] not in ordem_camadas:
             ordem_camadas.append(e[2])
-    tons = _tons(len(ordem_camadas))
-    cor_de = {ch: tons[i] for i, ch in enumerate(ordem_camadas)}
+
+    paleta = [
+        "#2563EB",
+        "#EA580C",
+        "#9333EA",
+        "#059669",
+        "#DB2777"
+    ]
+
+    cor_de = {
+        ch: paleta[i % len(paleta)]
+        for i, ch in enumerate(ordem_camadas)
+    }
 
     n_l, n_c = len(grade), len(grade[0])
-    fig, ax = plt.subplots(figsize=(max(6, n_c * .34), max(4, n_l * .34 + 2.2)))
-    _desenhar_grade(ax, grade, rotulos=n_c <= 30)
+    mapa_grande = n_c > 30
 
-    for a, b in zip(caminho, caminho[1:]):
-        ax.plot([a[1], b[1]], [a[0], b[0]], color=cor_de[b[2]],
-                linewidth=3.2, solid_capstyle="round", zorder=3,
-                path_effects=None)
-    for e in caminho:
-        ax.plot(e[1], e[0], "o", markersize=4.6, color=cor_de[e[2]],
-                markeredgecolor="#ffffff", markeredgewidth=1.0, zorder=4)
+    if mapa_grande:
+        fig, ax = plt.subplots(figsize=(24, 13))
+    else:
+        fig, ax = plt.subplots(
+            figsize=(max(8, n_c * .45), max(6, n_l * .45 + 2.2))
+        )
 
-    for a, b in zip(caminho, caminho[1:]):
+    _desenhar_grade(ax, grade, rotulos=not mapa_grande)
+
+    segmentos = list(zip(caminho, caminho[1:]))
+    sobreposicoes = {}
+
+    for i, (a, b) in enumerate(segmentos):
+        trecho = tuple(sorted((a[:2], b[:2])))
+        sobreposicoes.setdefault(trecho, []).append(i)
+
+    for i, (a, b) in enumerate(segmentos):
+        x0, y0 = a[1], a[0]
+        x1, y1 = b[1], b[0]
+
+        cor = cor_de[b[2]]
+
+        trecho = tuple(sorted((a[:2], b[:2])))
+        ocorrencias = sobreposicoes[trecho]
+
+        if len(ocorrencias) > 1:
+            indice = ocorrencias.index(i)
+            deslocamento = (
+                indice - (len(ocorrencias) - 1) / 2
+            ) * .24
+
+            if y0 == y1:
+                y0 += deslocamento
+                y1 += deslocamento
+            else:
+                x0 += deslocamento
+                x1 += deslocamento
+
+        ax.plot(
+            [x0, x1], [y0, y1],
+            color="#ffffff",
+            linewidth=4.5,
+            solid_capstyle="round",
+            zorder=3
+        )
+
+        ax.plot(
+            [x0, x1], [y0, y1],
+            color=cor,
+            linewidth=2.8,
+            solid_capstyle="round",
+            zorder=4
+        )
+
+        ax.plot(
+            x0, y0, "o",
+            markersize=3.2,
+            color=cor,
+            markeredgecolor="#ffffff",
+            markeredgewidth=.7,
+            zorder=5
+        )
+
+        intervalo_setas = 5 if mapa_grande else 3
+
+        if i % intervalo_setas == 0 or len(ocorrencias) > 1:
+            ax.annotate(
+                "",
+                xy=(
+                    x0 + (x1 - x0) * .75,
+                    y0 + (y1 - y0) * .75
+                ),
+                xytext=(
+                    x0 + (x1 - x0) * .25,
+                    y0 + (y1 - y0) * .25
+                ),
+                arrowprops=dict(
+                    arrowstyle="-|>",
+                    color=cor,
+                    linewidth=1.5,
+                    mutation_scale=12,
+                    shrinkA=0,
+                    shrinkB=0
+                ),
+                zorder=6
+            )
+
+    ultimo = caminho[-1]
+
+    ax.plot(
+        ultimo[1], ultimo[0], "o",
+        markersize=5,
+        color=cor_de[ultimo[2]],
+        markeredgecolor="#ffffff",
+        markeredgewidth=1,
+        zorder=7
+    )
+
+    for a, b in segmentos:
         if b[2] != a[2]:
             nova = (set(b[2]) - set(a[2])).pop()
-            ax.annotate(f"pegou {nova}", (b[1], b[0]),
-                        textcoords="offset points", xytext=(0, 13),
-                        ha="center", fontsize=7.5, color=TINTA, weight="bold",
-                        bbox=dict(boxstyle="round,pad=0.22", fc="#ffffff",
-                                  ec=cor_de[b[2]], lw=1.0), zorder=6)
 
-    itens = [Line2D([], [], color=cor_de[ch], lw=3.2,
-                    label=f"com {ch}" if ch else "sem chaves")
-             for ch in ordem_camadas]
+            ax.annotate(
+                f"pegou {nova}",
+                (b[1], b[0]),
+                textcoords="offset points",
+                xytext=(0, 14),
+                ha="center",
+                fontsize=12 if mapa_grande else 9,
+                color=TINTA,
+                weight="bold",
+                bbox=dict(
+                    boxstyle="round,pad=0.25",
+                    fc="#ffffff",
+                    ec=cor_de[b[2]],
+                    lw=1.5
+                ),
+                zorder=10
+            )
+
+    itens = [
+        Line2D(
+            [], [],
+            color=cor_de[ch],
+            lw=4,
+            label=f"com {ch}" if ch else "sem chaves"
+        )
+        for ch in ordem_camadas
+    ]
+
     itens += _legenda_casas(ax, grade)
-    ax.legend(handles=itens, loc="upper center", bbox_to_anchor=(.5, -.14),
-              ncol=min(5, len(itens)), fontsize=7.5, frameon=False)
 
-    ax.set_title(f"Caminho de menor custo — {nome}\n"
-                 f"{alg} · {len(caminho)-1} passos · custo {dist[ALVO]} · "
-                 f"{len(ordem_camadas)} camada(s)",
-                 fontsize=11, color=TINTA, weight="bold", pad=10)
+    ax.legend(
+        handles=itens,
+        loc="upper center",
+        bbox_to_anchor=(.5, -.075 if mapa_grande else -.12),
+        ncol=min(6 if mapa_grande else 5, len(itens)),
+        fontsize=19 if mapa_grande else 10,
+        frameon=False,
+        handlelength=2.5,
+        columnspacing=1.5,
+        labelspacing=.8
+    )
+
+    ax.set_title(
+        f"Caminho de menor custo — {nome}\n"
+        f"{alg} · {len(caminho)-1} passos · custo {dist[ALVO]} · "
+        f"{len(ordem_camadas)} camada(s)",
+        fontsize=22 if mapa_grande else 14,
+        color=TINTA,
+        weight="bold",
+        pad=15
+    )
+
+    ax.set_xlabel(
+        "coluna",
+        fontsize=14 if mapa_grande else 11,
+        color=TINTA2
+    )
+
+    ax.set_ylabel(
+        "linha",
+        fontsize=14 if mapa_grande else 11,
+        color=TINTA2
+    )
+
+    ax.tick_params(
+        labelsize=12 if mapa_grande else 9
+    )
+
     fig.tight_layout()
-    fig.savefig(saida, dpi=160, bbox_inches="tight", facecolor="#fcfcfb")
+
+    fig.savefig(
+        saida,
+        dpi=200,
+        bbox_inches="tight",
+        facecolor="#fcfcfb"
+    )
+
     plt.close(fig)
+
     return saida
 
 
