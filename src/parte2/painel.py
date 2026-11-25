@@ -29,6 +29,8 @@ from src.viz import _reconstruir
 DATASET = os.path.join("data", "dataset_parte2", "soc-sign-bitcoinalpha.csv")
 RELATORIO = os.path.join("out", "parte2", "parte2_report.json")
 PASTA_FIGURAS = os.path.join("out", "parte2")
+# [IA] Claude Code – front/UX (aba AVD: celulas 22, 23, 24, 32 e 54 = exploratoria; 63 e 65 = explanatoria)
+CELULAS_EXPLANATORIA = {63, 65}
 
 # nome na pagina -> funcao do grupo
 ALGORITMOS = {
@@ -151,9 +153,11 @@ class PainelParte2:
         return self._relatorio
 
     def figuras(self):
-        return [{"arquivo": nome, "titulo": titulo,
+        # [IA] Claude Code – front/UX (secao de cada figura na aba AVD, pela celula do notebook)
+        return [{"arquivo": nome, "titulo": titulo, "celula": indice,
+                 "secao": "explanatoria" if indice in CELULAS_EXPLANATORIA else "exploratoria",
                  "existe": os.path.exists(os.path.join(PASTA_FIGURAS, nome))}
-                for nome, titulo, _trecho, _indice in FIGURAS]
+                for nome, titulo, _trecho, indice in FIGURAS]
 
     # ------------------------------------------------------------ rodar um algoritmo do grupo
     def _executar(self, algoritmo, origem):
@@ -189,8 +193,8 @@ class PainelParte2:
             try:
                 saida, tempo, em_cache = self._executar(algoritmo, origem)
             except ValueError as erro:          # Dijkstra do grupo recusa peso negativo
-                return {**base, "status": "RECUSA", "mensagem": str(erro),
-                        "transformacao_pesos": "a definir pelo grupo"}
+                # [IA] Claude Code – front/UX (recusa e o comportamento exigido: so status + mensagem do grupo)
+                return {**base, "status": "RECUSA", "mensagem": str(erro)}
 
         dist, pais = saida[0], saida[1]
         ciclo = saida[2] if len(saida) > 2 else None

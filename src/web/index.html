@@ -183,13 +183,32 @@
   .alg:hover{border-color:var(--linha2)}
   .alg[aria-pressed="true"]{border-color:var(--acento);background:color-mix(in srgb,var(--acento) 14%,var(--bg2))}
   .alg[aria-pressed="true"] small{color:var(--txt2)}
-  .nota-alg{margin-top:.5rem;font-size:.75rem;color:var(--alerta);display:flex;gap:.4rem;align-items:flex-start}
+  .nota-alg{margin-top:.5rem;font-size:.75rem;color:var(--txt3);display:flex;gap:.4rem;align-items:flex-start}
   .campos{display:grid;grid-template-columns:1fr auto 1fr;gap:.4rem;align-items:end;margin-top:.7rem}
   .campo{display:flex;flex-direction:column;gap:.2rem;min-width:0}
   .campo span{font-size:.72rem;color:var(--txt3);font-weight:600}
   .campo input{background:var(--bg2);border:1px solid var(--linha);border-radius:9px;padding:.45rem .6rem;font-family:var(--mono);font-size:.92rem;width:100%}
   .campo input:focus{border-color:var(--acento);outline:none}
   .campo input[aria-invalid="true"]{border-color:var(--erro)}
+  /* [IA] Claude Code – front/UX (seletor de vertice com lista suspensa) */
+  .campo{position:relative}
+  .entrada-v{position:relative}
+  .entrada-v input{padding-right:1.9rem}
+  .abre{position:absolute;right:.3rem;top:50%;transform:translateY(-50%);width:1.5rem;height:1.5rem;border:0;border-radius:6px;
+        background:none;color:var(--txt3);font-size:.85rem;display:grid;place-items:center}
+  .abre:hover{color:var(--txt);background:var(--card2)}
+  .suspensa{position:absolute;top:calc(100% + 4px);left:0;z-index:30;width:max(100%,14.5rem);background:var(--card);
+            border:1px solid var(--linha2);border-radius:11px;box-shadow:0 14px 34px -12px rgba(0,0,0,.55);overflow:hidden}
+  .suspensa.direita{left:auto;right:0}
+  .suspensa-topo{font-size:.7rem;color:var(--txt3);padding:.35rem .65rem;border-bottom:1px solid var(--linha);background:var(--card2)}
+  .lista-v{overflow-y:auto;overscroll-behavior:contain}
+  .item-v{position:absolute;left:0;right:0;height:30px;display:flex;align-items:center;justify-content:space-between;gap:.5rem;
+          padding:0 .65rem;cursor:pointer;font-size:.82rem}
+  .item-v b{font-family:var(--mono);font-weight:600}
+  .item-v small{font-size:.68rem;color:var(--txt3);white-space:nowrap}
+  .item-v[aria-selected="true"]{background:color-mix(in srgb,var(--acento) 16%,transparent)}
+  .item-v.atual b{color:var(--acento)}
+  .item-v.atual b::after{content:" ✓";font-family:var(--sans)}
   .trocar{height:2.2rem;width:2.2rem;border-radius:9px;border:1px solid var(--linha);background:var(--card2);color:var(--txt2)}
   .trocar:hover{border-color:var(--acento);color:var(--txt)}
   .rodar{margin-top:.7rem;width:100%;height:2.7rem;border-radius:11px;border:0;font-weight:700;font-size:.95rem;color:#0b1020;
@@ -251,6 +270,11 @@
   .avd-intro{font-size:.85rem;color:var(--txt2);margin:0}
   .grade-avd{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.9rem;align-items:start}
   .figura.larga{grid-column:1/-1}
+  /* [IA] Claude Code – front/UX (secoes da aba AVD) */
+  .secao-avd{display:flex;flex-direction:column;gap:.7rem}
+  .secao-avd h3{margin:.4rem 0 0;font-size:1.15rem;letter-spacing:-.01em;display:flex;align-items:baseline;gap:.7rem;flex-wrap:wrap;
+                padding-bottom:.45rem;border-bottom:1px solid var(--linha)}
+  .secao-avd h3 small{font-size:.74rem;font-weight:500;color:var(--txt3)}
   @media (max-width:1100px){.grade-avd{grid-template-columns:1fr}}
   .figura{display:flex;flex-direction:column;gap:.6rem;padding:.9rem;margin:0}
   .figura figcaption{display:flex;align-items:baseline;justify-content:space-between;gap:.6rem}
@@ -258,9 +282,6 @@
   .figura figcaption small{font-size:.7rem;color:var(--txt3);white-space:nowrap}
   .papel{background:var(--papel);border-radius:10px;border:1px solid var(--linha);padding:.4rem;display:flex;justify-content:center;cursor:zoom-in}
   .papel img{max-width:100%;height:auto;display:block}
-  .nota{border:1px dashed var(--linha2);border-radius:10px;padding:.55rem .7rem;display:flex;flex-direction:column;gap:.15rem}
-  .nota span{font-size:.7rem;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.08em}
-  .nota p{margin:0;font-size:.86rem;color:var(--txt3);font-style:italic}
   .lupa{position:fixed;inset:0;z-index:50;background:rgba(5,8,18,.82);display:flex;align-items:center;justify-content:center;padding:2rem;cursor:zoom-out}
   .lupa img{max-width:100%;max-height:100%;background:#fff;border-radius:10px;padding:.5rem}
 
@@ -690,13 +711,12 @@ function Resultado({r, aoClicarVertice, usarDestino}){
   const titulo = INFO_ALG[r.algoritmo].nome + " · " + r.origem + " → " + r.destino;
   const tempo = r.tempo_s !== undefined && html`
     <div className="info"><span>tempo${r.em_cache ? " (da 1ª execução; resultado em cache)" : ""}</span><span>${fmtTempo(r.tempo_s)}</span></div>`;
+  // [IA] Claude Code – front/UX (recusa = comportamento exigido: so o status RECUSA e a mensagem do algorithms.py)
   if (r.status === "RECUSA") return html`
     <div className="bloco" aria-live="polite">
-      <h3>Resultado <span className="etiqueta alerta">recusou</span></h3>
+      <h3>Resultado <span className="etiqueta">RECUSA</span></h3>
       <div className="mono" style=${{fontSize: ".85rem", fontWeight: 600}}>${titulo}</div>
-      <div className="aviso alerta"><b>O Dijkstra do grupo recusou o grafo</b><code>${r.mensagem}</code></div>
-      <div className="aviso neutro"><b>Transformação de pesos: a definir pelo grupo</b>
-        Enquanto isso, o Dijkstra roda só como está no algorithms.py (recusa peso negativo).</div>
+      <div className="aviso neutro"><code>${r.mensagem}</code></div>
     </div>`;
   if (r.status === "SEM_CAMINHO") return html`
     <div className="bloco" aria-live="polite">
@@ -739,7 +759,91 @@ function Resultado({r, aoClicarVertice, usarDestino}){
     </div>`;
 }
 
-function PainelAlgoritmos({vertices, relatorio, setDestaque, selecionado, setSelecionado, grauDe}){
+// [IA] Claude Code – front/UX (campo de vertice com busca e lista suspensa compacta)
+// Ao abrir, mostra TODOS os vertices em ordem numerica (ja rolado ate o atual); digitar filtra
+// pelo comeco do numero. A lista e "virtual": so as linhas visiveis vao para a tela.
+const ALT_ITEM = 30, ITENS_VISIVEIS = 8;
+function SeletorVertice({id, rotulo, valor, setValor, lista, grauDe, invalido, aoEnter, direita}){
+  const [aberto, setAberto] = useState(false);
+  const [busca, setBusca] = useState("");          // "" = todos
+  const [ativo, setAtivo] = useState(0);
+  const [topo, setTopo] = useState(0);
+  const entradaRef = useRef(null), listaRef = useRef(null), centralizar = useRef(false);
+  const filtrados = useMemo(() => busca ? lista.filter(v => String(v).startsWith(busca)) : lista, [lista, busca]);
+
+  // mantem a linha ativa visivel
+  useEffect(() => {
+    const el = listaRef.current;
+    if (!aberto || !el) return;
+    const y = ativo * ALT_ITEM;
+    if (centralizar.current){ el.scrollTop = Math.max(0, y - (el.clientHeight - ALT_ITEM) / 2); centralizar.current = false; }
+    else if (y < el.scrollTop) el.scrollTop = y;
+    else if (y + ALT_ITEM > el.scrollTop + el.clientHeight) el.scrollTop = y + ALT_ITEM - el.clientHeight;
+    setTopo(el.scrollTop);
+  }, [aberto, ativo, filtrados]);
+
+  const abrir = () => {
+    if (aberto) return;
+    const i = lista.indexOf(Number(valor));
+    centralizar.current = true;              // ao abrir, o vertice atual aparece no meio da lista
+    setBusca(""); setAtivo(i >= 0 ? i : 0); setAberto(true);
+  };
+  const escolher = v => { setValor(String(v)); setAberto(false); setBusca(""); };
+  const digitar = e => {
+    const t = e.target.value.replace(/\D/g, "");
+    setValor(t); setBusca(t); setAtivo(0); setAberto(true);
+  };
+  const teclas = e => {
+    if (e.key === "ArrowDown"){ e.preventDefault(); if (!aberto) abrir(); else setAtivo(a => Math.min(filtrados.length - 1, a + 1)); }
+    else if (e.key === "ArrowUp"){ e.preventDefault(); setAtivo(a => Math.max(0, a - 1)); }
+    else if (e.key === "PageDown" && aberto){ e.preventDefault(); setAtivo(a => Math.min(filtrados.length - 1, a + ITENS_VISIVEIS)); }
+    else if (e.key === "PageUp" && aberto){ e.preventDefault(); setAtivo(a => Math.max(0, a - ITENS_VISIVEIS)); }
+    else if (e.key === "Escape"){ setAberto(false); }
+    else if (e.key === "Enter"){
+      e.preventDefault();
+      if (aberto && filtrados[ativo] !== undefined) escolher(filtrados[ativo]);
+      else aoEnter();
+    }
+  };
+
+  const ini = Math.max(0, Math.floor(topo / ALT_ITEM) - 4);
+  const fim = Math.min(filtrados.length, ini + ITENS_VISIVEIS + 8);
+  const idLista = "lista-" + id;
+  return html`
+    <div className="campo">
+      <label htmlFor=${"campo-" + id}><span>${rotulo}</span></label>
+      <div className="entrada-v">
+        <input id=${"campo-" + id} ref=${entradaRef} value=${valor} inputMode="numeric" autoComplete="off" aria-invalid=${invalido}
+               role="combobox" aria-expanded=${aberto} aria-controls=${idLista} aria-autocomplete="list"
+               aria-activedescendant=${aberto && filtrados[ativo] !== undefined ? idLista + "-" + filtrados[ativo] : undefined}
+               onFocus=${abrir} onClick=${abrir} onBlur=${() => setAberto(false)} onChange=${digitar} onKeyDown=${teclas}/>
+        <button className="abre" tabIndex="-1" aria-label=${"Mostrar lista de vértices (" + rotulo + ")"}
+                onMouseDown=${e => e.preventDefault()}
+                onClick=${() => { if (aberto) setAberto(false); else { entradaRef.current.focus(); abrir(); } }}>▾</button>
+      </div>
+      ${aberto && html`
+        <div className=${"suspensa" + (direita ? " direita" : "")} onMouseDown=${e => e.preventDefault()}>
+          <div className="suspensa-topo">${busca
+            ? (filtrados.length ? fmtInt(filtrados.length) + " de " + fmtInt(lista.length) + " começam com " + busca
+                                : "nenhum vértice começa com " + busca)
+            : fmtInt(lista.length) + " vértices · digite para filtrar"}</div>
+          <div className="lista-v" ref=${listaRef} id=${idLista} role="listbox" aria-label=${"Vértices (" + rotulo + ")"}
+               style=${{maxHeight: ITENS_VISIVEIS * ALT_ITEM + "px"}} onScroll=${e => setTopo(e.target.scrollTop)}>
+            <div style=${{height: filtrados.length * ALT_ITEM + "px", position: "relative"}}>
+              ${filtrados.slice(ini, fim).map((v, k) => {
+                const i = ini + k, g = grauDe(v);
+                return html`<div key=${v} id=${idLista + "-" + v} role="option" aria-selected=${i === ativo}
+                    className=${"item-v" + (String(v) === String(valor) ? " atual" : "")} style=${{top: i * ALT_ITEM + "px"}}
+                    onMouseEnter=${() => setAtivo(i)} onClick=${() => escolher(v)}>
+                  <b>${v}</b>${g && html`<small>entrada ${g.entrada} · saída ${g.saida}</small>`}</div>`;
+              })}
+            </div>
+          </div>
+        </div>`}
+    </div>`;
+}
+
+function PainelAlgoritmos({vertices, lista, relatorio, setDestaque, selecionado, setSelecionado, grauDe}){
   const [alg, setAlg] = useState("BFS");
   const [origem, setOrigem] = useState("7188");
   const [destino, setDestino] = useState("3315");
@@ -809,16 +913,13 @@ function PainelAlgoritmos({vertices, relatorio, setDestaque, selecionado, setSel
             <button key=${a} className="alg" aria-pressed=${alg === a} onClick=${() => setAlg(a)}>
               <b>${INFO_ALG[a].nome}</b><small>${INFO_ALG[a].ideia}</small></button>`)}
         </div>
-        ${alg === "DIJKSTRA" && html`<div className="nota-alg">⚠ transformação de pesos: a definir pelo grupo (o grafo tem notas negativas).</div>`}
-        ${alg === "BELLMAN_FORD" && html`<div className="nota-alg" style=${{color: "var(--txt3)"}}>⏱ no grafo inteiro o Bellman-Ford leva de 30 a 40 s (depois fica em cache).</div>`}
+        ${alg === "BELLMAN_FORD" && html`<div className="nota-alg">⏱ no grafo inteiro o Bellman-Ford leva de 30 a 40 s (depois fica em cache).</div>`}
         <div className="campos">
-          <label className="campo"><span>origem</span>
-            <input value=${origem} inputMode="numeric" list="lista-vertices" aria-invalid=${!origemOk}
-                   onChange=${e => setOrigem(e.target.value.replace(/\D/g, ""))} onKeyDown=${e => e.key === "Enter" && rodar()}/></label>
+          <${SeletorVertice} id="origem" rotulo="origem" valor=${origem} setValor=${setOrigem} lista=${lista}
+            grauDe=${grauDe} invalido=${!origemOk} aoEnter=${rodar}/>
           <button className="trocar" onClick=${() => { setOrigem(destino); setDestino(origem); }} aria-label="Trocar origem e destino" title="Trocar">⇄</button>
-          <label className="campo"><span>destino</span>
-            <input value=${destino} inputMode="numeric" list="lista-vertices" aria-invalid=${!destinoOk}
-                   onChange=${e => setDestino(e.target.value.replace(/\D/g, ""))} onKeyDown=${e => e.key === "Enter" && rodar()}/></label>
+          <${SeletorVertice} id="destino" rotulo="destino" valor=${destino} setValor=${setDestino} lista=${lista}
+            grauDe=${grauDe} invalido=${!destinoOk} aoEnter=${rodar} direita=${true}/>
         </div>
         ${(!origemOk || !destinoOk) && html`<div className="erro-campo">${!origemOk ? "origem" : "destino"} não é um vértice do grafo.</div>`}
         <button className="rodar" onClick=${rodar} disabled=${rodando || !origemOk || !destinoOk}>
@@ -931,6 +1032,11 @@ function ResultadosSalvos({rel, erro, verCiclo}){
 }
 
 // ------------------------------------------------------------------ parte 2: AVD (figuras exportadas do notebook)
+const SECOES_AVD = [
+  {id: "exploratoria", titulo: "Análise exploratória"},
+  {id: "explanatoria", titulo: "Análise explanatória"},
+];
+
 function AbaAVD(){
   const {dados, erro} = useDados("api/parte2/figuras");
   const [lupa, setLupa] = useState(null);
@@ -951,19 +1057,27 @@ function AbaAVD(){
         ${" para "}<span className="mono">out/parte2/</span>. Clique num gráfico para ampliar.</p>
       ${faltando > 0 && html`<div className="aviso alerta" style=${{marginTop: 0}}><b>${faltando} figura(s) ainda não exportada(s)</b>
         Rode <code>python -m src.parte2.exportar_figuras</code>.</div>`}
-      <div className="grade-avd">
-        ${dados.map(f => html`
-          <figure key=${f.arquivo} className=${"cartao figura" + (largas[f.arquivo] ? " larga" : "")}>
-            <figcaption><b>${f.titulo}</b><small className="mono">${f.arquivo}</small></figcaption>
-            ${f.existe
-              ? html`<div className="papel" onClick=${() => setLupa(f)} role="button" tabIndex="0" aria-label=${"Ampliar: " + f.titulo}
-                          onKeyDown=${e => e.key === "Enter" && setLupa(f)}>
-                       <img src=${"parte2/figuras/" + f.arquivo} alt=${f.titulo} loading="lazy"
-                            onLoad=${e => { const i = e.target; if (i.naturalWidth > 2.6 * i.naturalHeight) setLargas(m => ({...m, [f.arquivo]: true})); }}/></div>`
-              : html`<div className="aviso neutro">arquivo não encontrado em out/parte2/</div>`}
-            <div className="nota"><span>Nota analítica</span><p>a ser escrita pelo grupo</p></div>
-          </figure>`)}
-      </div>
+      ${SECOES_AVD.map(s => {
+        // [IA] Claude Code – front/UX (AVD em duas secoes; sem campo de nota)
+        const figs = dados.filter(f => f.secao === s.id);
+        if (!figs.length) return null;
+        return html`
+        <section key=${s.id} className="secao-avd" aria-labelledby=${"avd-" + s.id}>
+          <h3 id=${"avd-" + s.id}>${s.titulo}<small>células ${figs.map(f => f.celula).join(", ")} do notebook</small></h3>
+          <div className="grade-avd">
+            ${figs.map(f => html`
+              <figure key=${f.arquivo} className=${"cartao figura" + (largas[f.arquivo] ? " larga" : "")}>
+                <figcaption><b>${f.titulo}</b><small className="mono">${f.arquivo}</small></figcaption>
+                ${f.existe
+                  ? html`<div className="papel" onClick=${() => setLupa(f)} role="button" tabIndex="0" aria-label=${"Ampliar: " + f.titulo}
+                              onKeyDown=${e => e.key === "Enter" && setLupa(f)}>
+                           <img src=${"parte2/figuras/" + f.arquivo} alt=${f.titulo} loading="lazy"
+                                onLoad=${e => { const i = e.target; if (i.naturalWidth > 2.6 * i.naturalHeight) setLargas(m => ({...m, [f.arquivo]: true})); }}/></div>`
+                  : html`<div className="aviso neutro">arquivo não encontrado em out/parte2/</div>`}
+              </figure>`)}
+          </div>
+        </section>`;
+      })}
       ${lupa && html`<div className="lupa" onClick=${() => setLupa(null)} role="dialog" aria-label=${lupa.titulo}>
         <img src=${"parte2/figuras/" + lupa.arquivo} alt=${lupa.titulo}/></div>`}
     </div>`;
@@ -990,6 +1104,8 @@ function Parte2({tema, visivel, aba, setAba}){
     return m;
   }, [grafo]);
   const grauDe = v => graus.get(Number(v)) || null;
+  // [IA] Claude Code – front/UX (todos os vertices em ordem numerica, para o seletor de origem/destino)
+  const lista = useMemo(() => grafo ? grafo.nos.map(n => n[0]).sort((a, b) => a - b) : [], [grafo]);
   const verCiclo = () => {
     setDestaque(destaqueDoCiclo(rel.dados.BELLMAN_FORD.grafo_completo.ciclo));
     setAba("grafo");
@@ -1024,10 +1140,9 @@ function Parte2({tema, visivel, aba, setAba}){
         <div className="area-grafo">
           <${DesenhoGrafo} tema=${tema} visivel=${visivel && aba === "grafo"} destaque=${destaque} selecionado=${selecionado}
             aoClicarVertice=${setSelecionado} avisarPronto=${setVertices}/>
-          <${PainelAlgoritmos} vertices=${vertices} relatorio=${rel.erro ? null : rel.dados || undefined}
+          <${PainelAlgoritmos} vertices=${vertices} lista=${lista} relatorio=${rel.erro ? null : rel.dados || undefined}
             setDestaque=${setDestaque} selecionado=${selecionado} setSelecionado=${setSelecionado} grauDe=${grauDe}/>
         </div>
-        ${grafo && html`<datalist id="lista-vertices">${grafo.nos.map(n => html`<option key=${n[0]} value=${n[0]}/>`)}</datalist>`}
       </div>
       ${aba === "resultados" && html`<${ResultadosSalvos} rel=${rel.dados} erro=${rel.erro} verCiclo=${verCiclo}/>`}
       ${aba === "avd" && html`<${AbaAVD}/>`}

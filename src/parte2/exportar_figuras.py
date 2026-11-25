@@ -45,10 +45,10 @@ FIGURAS = [
      "Matriz de correlação (Spearman) das variáveis quantitativas",
      "Matriz de Correlação (Spearman) — Variáveis Quantitativas", 54),
     ("avd_06_explanatoria_extremos_reputacao.png",
-     "Análise explanatória · Visualização 1: Evolução da Confiança Máxima vs. Detecção de Risco (2011 - 2014)",
+     "Visualização 1: Evolução da Confiança Máxima vs. Detecção de Risco (2011 - 2014)",
      "Evolução dos Extremos de Reputação", 63),
     ("avd_07_explanatoria_usuarios_mais_avaliados.png",
-     "Análise explanatória · Visualização 2: Identificação de Membros-Chave e Assimetria de Reputação",
+     "Visualização 2: Identificação de Membros-Chave e Assimetria de Reputação",
      "Os 8 Usuários Mais Avaliados", 65),
 ]
 
