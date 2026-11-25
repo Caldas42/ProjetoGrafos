@@ -124,9 +124,27 @@
   /* ---------------- parte 2 ---------------- */
   .p2{max-width:1680px;margin:0 auto;padding:.9rem 1rem 2rem;display:flex;flex-direction:column;gap:.9rem}
   .cartao{background:var(--card);border:1px solid var(--linha);border-radius:var(--r);box-shadow:var(--sombra)}
-  .resumo{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:1rem;padding:1rem 1.1rem}
-  .resumo h2{margin:0 0 .15rem;font-size:1.2rem;letter-spacing:-.01em}
-  .resumo .sub{margin:0 0 .7rem;color:var(--txt2);font-size:.86rem}
+  /* [IA] ChatGPT – melhoria do cabeçalho da Parte 2 */
+  .resumo {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+    padding: 1.2rem 1.4rem;
+  }
+
+  .resumo h2 {
+    margin: 0 0 .4rem;
+    font-size: 1.5rem;
+    letter-spacing: -.02em;
+    font-weight: 700;
+  }
+
+  .resumo .sub {
+    margin: 0 0 1rem;
+    color: var(--txt2);
+    font-size: .9rem;
+    line-height: 1.6;
+  }
   .tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.5rem}
   .tile{background:var(--bg2);border:1px solid var(--linha);border-radius:11px;padding:.5rem .7rem;min-width:0}
   .tile span{display:block;font-size:.7rem;color:var(--txt3)}
@@ -1093,7 +1111,7 @@ function AbaAVD(){
 // ------------------------------------------------------------------ parte 2: pagina
 const ABAS_P2 = [
   {id: "grafo", nome: "Grafo e algoritmos"},
-  {id: "resultados", nome: "Resultados (parte2_report.json)"},
+  {id: "resultados", nome: "Resultados e desempenho"},
   {id: "avd", nome: "Análise de dados (AVD)"},
 ];
 
@@ -1122,8 +1140,14 @@ function Parte2({tema, visivel, aba, setAba}){
     <main className="p2" style=${{display: visivel ? "flex" : "none"}}>
       <section className="cartao resumo" aria-label="Resumo do dataset">
         <div>
-          <h2>Bitcoin Alpha · rede de confiança</h2>
-          <p className="sub">Vértice = usuário · arco u → v = avaliação que u deu a v · peso = nota da avaliação</p>
+          <!-- [IA] ChatGPT – melhoria do cabeçalho da Parte 2 -->
+          <h2>Grafo do dataset Bitcoin Alpha</h2>
+          <p className="sub">
+            Rede de confiança representada por um grafo dirigido e ponderado,
+            em que os vértices representam usuários, os arcos representam
+            avaliações entre eles e os pesos correspondem às notas atribuídas,
+            variando de −10 a +10.
+          </p>
           <div className="tiles">
             <div className="tile"><span>|V| vértices</span><b>${r ? fmtInt(r.vertices) : "…"}</b></div>
             <div className="tile"><span>|E| arcos</span><b>${r ? fmtInt(r.arestas) : "…"}</b></div>
@@ -1132,11 +1156,6 @@ function Parte2({tema, visivel, aba, setAba}){
           </div>
           ${resumo.erro && html`<div className="aviso erro"><b>Erro ao carregar o resumo</b>${resumo.erro}</div>`}
         </div>
-        <blockquote className="pergunta">
-          <span className="rot">Pergunta de pesquisa</span>
-          <p>${r ? (r.pergunta || "(seção \"Pergunta de Pesquisa\" não encontrada no notebook)") : "…"}</p>
-          <cite>notebook do grupo · seção 7, “Pergunta de Pesquisa”</cite>
-        </blockquote>
       </section>
 
       <div className="abas" role="tablist" aria-label="Seções da Parte 2">
