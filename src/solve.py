@@ -534,27 +534,16 @@ def gerar_dijkstra_parte2(grafo, fonte):
     }
 
 def gerar_escalabilidade_parte2(grafo):
-    from random import Random
     from time import perf_counter
-    from src.graphs.algorithms import bfs, dfs_completa, dijkstra, bellman_ford
-
-    fonte = 7188
-
-    origem_negativa, destino_negativo = next(
-        (u, v)
-        for u, vizinhos in grafo.items()
-        for v, peso in vizinhos
-        if peso < 0
+    from src.graphs.algorithms import (
+        bfs, dfs_completa, dijkstra, bellman_ford
+    )
+    from src.parte2.construcao import (
+        selecionar_vertices, construir_recorte
     )
 
-    obrigatorios = list(dict.fromkeys([
-        fonte, origem_negativa, destino_negativo
-    ]))
-
-    restantes = sorted(set(grafo) - set(obrigatorios))
-    Random(42).shuffle(restantes)
-
-    vertices = obrigatorios + restantes
+    fonte = 7188
+    vertices = selecionar_vertices(grafo)
 
     algoritmos = {
         "BFS": bfs,
@@ -566,18 +555,9 @@ def gerar_escalabilidade_parte2(grafo):
     resultados = []
 
     for percentual in [10, 50, 100]:
-        quantidade = int(len(grafo) * percentual / 100)
-        selecionados = set(vertices[:quantidade])
-
-        subgrafo = {
-            u: [
-                (v, peso)
-                for v, peso in grafo[u]
-                if v in selecionados
-            ]
-            for u in grafo
-            if u in selecionados
-        }
+        subgrafo = construir_recorte(
+            grafo, percentual, vertices
+        )
 
         resultado = {
             "percentual": percentual,

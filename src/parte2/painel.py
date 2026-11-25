@@ -22,7 +22,10 @@ from time import perf_counter
 from src.graphs import graph as gr
 from src.graphs.algorithms import bellman_ford, bfs, dfs_distancias, dijkstra
 from src.graphs.io import ler_dataset_bitcoin_alpha
-from src.parte2.construcao import construir_grafo
+from src.parte2.construcao import (
+    construir_grafo,
+    construir_recorte
+)
 from src.parte2.exportar_figuras import FIGURAS, NOTEBOOK
 from src.viz import _reconstruir
 
@@ -72,6 +75,8 @@ class PainelParte2:
         self.dataset = dataset
         self.caminho_relatorio = relatorio
         self._grafo = None
+        # [IA] ChatGPT - cache dos recortes para a interface
+        self._recortes = {}
         self._relatorio = None
         self._cache = {}                    # (algoritmo, origem) -> (saida, tempo_s)
         self._trava_grafo = threading.Lock()
@@ -83,6 +88,24 @@ class PainelParte2:
             if self._grafo is None:
                 self._grafo = construir_grafo(ler_dataset_bitcoin_alpha(self.dataset))
             return self._grafo
+
+    # [IA] ChatGPT - disponibilizacao dos recortes para o front
+    def recorte(self, percentual=100):
+        if percentual not in (10, 50, 100):
+            raise ValueError("Percentual deve ser 10, 50 ou 100.")
+
+        grafo = self.grafo()
+
+        if percentual == 100:
+            return grafo
+
+        with self._trava_grafo:
+            if percentual not in self._recortes:
+                self._recortes[percentual] = construir_recorte(
+                    grafo, percentual
+                )
+
+            return self._recortes[percentual]
 
     def _peso(self, u, v):
         for destino, peso in self.grafo()[u]:
@@ -104,13 +127,28 @@ class PainelParte2:
             "pergunta": pergunta_de_pesquisa(),
         }
 
-    def dados_grafo(self):
-        """Vertices (com graus) e arcos, para a pagina desenhar."""
-        g = self.grafo()
+    def dados_grafo(self, percentual=100):
+        """Vertices, graus e arcos do recorte selecionado."""
+
+        g = self.recorte(percentual)
         entrada = gr.graus_entrada(g)
-        nos = [[v, entrada.get(v, 0), gr.grau_saida(g, v)] for v in g]
-        arcos = [[u, v, p] for u, vizinhos in g.items() for v, p in vizinhos]
-        return {"nos": nos, "arcos": arcos}
+
+        nos = [
+            [v, entrada.get(v, 0), gr.grau_saida(g, v)]
+            for v in g
+        ]
+
+        arcos = [
+            [u, v, p]
+            for u, vizinhos in g.items()
+            for v, p in vizinhos
+        ]
+
+        return {
+            "percentual": percentual,
+            "nos": nos,
+            "arcos": arcos
+        }
 
     # ------------------------------------------------------------ resultados ja salvos
     def relatorio(self):
@@ -160,25 +198,33 @@ class PainelParte2:
                 for nome, titulo, _trecho, indice in FIGURAS]
 
     # ------------------------------------------------------------ rodar um algoritmo do grupo
-    def _executar(self, algoritmo, origem):
-        """Chama a funcao do grupo (com cache: o Bellman-Ford no grafo inteiro leva ~30 s)."""
-        chave = (algoritmo, origem)
+    def _executar(self, algoritmo, origem, percentual=100):
+        """Executa o algoritmo no recorte selecionado."""
+
+        chave = (algoritmo, origem, percentual)
+
         if chave in self._cache:
             saida, tempo = self._cache[chave]
             return saida, tempo, True
+
+        grafo = self.recorte(percentual)
+
         inicio = perf_counter()
-        saida = ALGORITMOS[algoritmo](self.grafo(), origem)
+        saida = ALGORITMOS[algoritmo](grafo, origem)
         tempo = perf_counter() - inicio
+
         if len(self._cache) >= 16:
             self._cache.pop(next(iter(self._cache)))
+
         self._cache[chave] = (saida, tempo)
+
         return saida, tempo, False
 
-    def rodar(self, algoritmo, origem, destino):
+    def rodar(self, algoritmo, origem, destino, percentual=100):
         algoritmo = str(algoritmo).upper()
         if algoritmo not in ALGORITMOS:
             raise ValueError(f"algoritmo desconhecido: {algoritmo}")
-        g = self.grafo()
+        g = self.recorte(percentual)
         try:
             origem, destino = int(origem), int(destino)
         except (TypeError, ValueError):
@@ -187,11 +233,18 @@ class PainelParte2:
             if v not in g:
                 raise ValueError(f"o vértice {v} ({nome}) não existe no grafo")
 
-        base = {"algoritmo": algoritmo, "origem": origem, "destino": destino,
-                "medida": MEDIDA[algoritmo]}
+        base = {
+            "algoritmo": algoritmo,
+            "origem": origem,
+            "destino": destino,
+            "percentual": percentual,
+            "medida": MEDIDA[algoritmo]
+        }
         with self._trava_execucao:
             try:
-                saida, tempo, em_cache = self._executar(algoritmo, origem)
+                saida, tempo, em_cache = self._executar(
+                    algoritmo, origem, percentual
+                )
             except ValueError as erro:          # Dijkstra do grupo recusa peso negativo
                 # [IA] Claude Code – front/UX (recusa e o comportamento exigido: so status + mensagem do grupo)
                 return {**base, "status": "RECUSA", "mensagem": str(erro)}

@@ -30,6 +30,7 @@ import sys
 import threading
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from urllib.parse import urlparse, parse_qs
 
 from src import viz
 from src.parte2.painel import PASTA_FIGURAS, PainelParte2   # [IA] Claude Code – front/UX (Parte 2 no front unico)
@@ -178,8 +179,21 @@ def criar_handler(servidor):
                 self._json(200, {"ok": True, "mapas": len(servidor.dados)})
             elif caminho == "/api/parte2/resumo":
                 self._json(200, servidor.parte2.resumo())
+            # [IA] ChatGPT - selecao do tamanho do grafo
             elif caminho == "/api/parte2/grafo":
-                self._json(200, servidor.parte2.dados_grafo())
+                try:
+                    parametros = parse_qs(urlparse(self.path).query)
+
+                    percentual = int(
+                        parametros.get("percentual", ["100"])[0]
+                    )
+
+                    dados = servidor.parte2.dados_grafo(percentual)
+
+                    self._json(200, dados)
+
+                except ValueError as erro:
+                    self._json(400, {"erro": str(erro)})
             elif caminho == "/api/parte2/relatorio":
                 try:
                     self._json(200, servidor.parte2.relatorio())
@@ -201,7 +215,14 @@ def criar_handler(servidor):
                 self._json(400, {"erro": "pedido inválido"})
                 return
             try:
-                resultado = servidor.parte2.rodar(pedido.get("algoritmo"), pedido.get("origem"), pedido.get("destino"))
+                percentual = pedido.get("percentual", 100)
+
+                resultado = servidor.parte2.rodar(
+                    pedido.get("algoritmo"),
+                    pedido.get("origem"),
+                    pedido.get("destino"),
+                    percentual
+                )
             except ValueError as erro:
                 self._json(400, {"erro": str(erro)})
                 return
