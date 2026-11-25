@@ -1,5 +1,4 @@
 # Projeto de Teoria dos Grafos + Análise e Visualização de Dados (AVD) 2026.2
-## Labirinto com Chaves (Grafo de Estados) + Comparação de Algoritmos
 
 ## Setup
 
