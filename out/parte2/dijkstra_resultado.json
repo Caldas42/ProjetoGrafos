@@ -1,0 +1,8 @@
+{
+  "algoritmo": "DIJKSTRA",
+  "origem": 7188,
+  "destino": 1,
+  "medida": "custo mínimo (soma dos pesos)",
+  "status": "RECUSA",
+  "mensagem": "Dijkstra recusado: o arco 1 -> 7348 tem peso negativo (-1). Use o Bellman-Ford para grafos com pesos negativos."
+}

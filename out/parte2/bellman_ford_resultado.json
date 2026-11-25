@@ -1,0 +1,20 @@
+{
+  "algoritmo": "BELLMAN_FORD",
+  "origem": 7188,
+  "destino": 1,
+  "medida": "custo mínimo (soma dos pesos)",
+  "tempo_s": 10.747407600050792,
+  "em_cache": false,
+  "alcancados": 3749,
+  "status": "CICLO_NEGATIVO",
+  "ciclo": [
+    7564,
+    102,
+    7564
+  ],
+  "pesos_ciclo": [
+    -10,
+    -10
+  ],
+  "custo_ciclo": -20
+}

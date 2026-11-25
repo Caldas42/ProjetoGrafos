@@ -1,0 +1,31 @@
+{
+  "algoritmo": "BFS",
+  "origem": 7188,
+  "destino": 2,
+  "medida": "distância (nº de arcos)",
+  "tempo_s": 0.0015020000282675028,
+  "em_cache": false,
+  "alcancados": 3749,
+  "status": "OK",
+  "distancia": 2,
+  "caminho": [
+    7188,
+    1,
+    2
+  ],
+  "pesos_caminho": [
+    10,
+    1
+  ],
+  "n_arcos": 2,
+  "soma_pesos": 11,
+  "mais_distantes": [
+    1265,
+    1275,
+    2039,
+    2040,
+    2573,
+    2599
+  ],
+  "nivel_maximo": 6
+}

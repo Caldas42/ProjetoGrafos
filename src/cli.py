@@ -207,6 +207,88 @@ def comando_graus(grafo):
     print(f"  estados sem saida     {len(becos)}")
     return 0
 
+def comando_dataset(args):
+    from src.graphs.io import ler_dataset_bitcoin_alpha
+    from src.parte2.construcao import construir_grafo
+    from src.parte2.painel import PainelParte2
+    from src.solve import gerar_parte2
+    import json
+
+    caminho = args.dataset
+
+    if os.path.isdir(caminho):
+        caminho = os.path.join(
+            caminho, "soc-sign-bitcoinalpha.csv"
+        )
+
+    if not os.path.isfile(caminho):
+        print(f"Dataset nao encontrado: {caminho}")
+        return 2
+
+    if args.benchmark:
+        destino = gerar_parte2(
+            dataset=caminho,
+            pasta=args.out
+        )
+
+        print(f"Relatorio gerado: {destino}")
+        return 0
+
+    if not args.alg:
+        print("Informe --alg ou --benchmark.")
+        return 2
+
+    if args.source is None or args.target is None:
+        print("Informe --source e --target.")
+        return 2
+
+    grafo = construir_grafo(
+        ler_dataset_bitcoin_alpha(caminho)
+    )
+
+    print(f"Dataset: {caminho}")
+    print(f"Vertices: {len(grafo)}")
+    print(f"Arcos: {sum(len(v) for v in grafo.values())}")
+    print(f"Algoritmo: {args.alg}")
+    print(f"Origem: {args.source}")
+    print(f"Destino: {args.target}")
+
+    painel = PainelParte2(dataset=caminho)
+
+    try:
+        resultado = painel.rodar(
+            args.alg,
+            args.source,
+            args.target
+        )
+    except ValueError as erro:
+        print(f"Erro: {erro}")
+        return 2
+
+    print(json.dumps(
+        resultado,
+        indent=2,
+        ensure_ascii=False
+    ))
+
+    os.makedirs(args.out, exist_ok=True)
+
+    destino = os.path.join(
+        args.out,
+        f"{args.alg.lower()}_resultado.json"
+    )
+
+    with open(destino, "w", encoding="utf-8") as arquivo:
+        json.dump(
+            resultado,
+            arquivo,
+            indent=2,
+            ensure_ascii=False
+        )
+
+    print(f"Resultado salvo em: {destino}")
+
+    return 0
 
 def main(argv=None):
     p = argparse.ArgumentParser(
@@ -242,8 +324,7 @@ def main(argv=None):
     args = p.parse_args(argv)
 
     if args.dataset:
-        print("Parte 2 ainda nao implementada no CLI (src/solve.py).", file=sys.stderr)
-        return 2
+        return comando_dataset(args)
 
     if args.interactive or args.figuras:
         from src import viz

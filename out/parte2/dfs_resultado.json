@@ -1,0 +1,28 @@
+{
+  "algoritmo": "DFS",
+  "origem": 7188,
+  "destino": 2,
+  "medida": "custo do caminho na árvore DFS (soma dos pesos)",
+  "tempo_s": 0.36903050006367266,
+  "em_cache": false,
+  "alcancados": 3749,
+  "status": "OK",
+  "distancia": 26,
+  "caminho": [
+    7188,
+    1,
+    160,
+    18,
+    11,
+    2
+  ],
+  "pesos_caminho": [
+    10,
+    10,
+    1,
+    1,
+    4
+  ],
+  "n_arcos": 5,
+  "soma_pesos": 26
+}
