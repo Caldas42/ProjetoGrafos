@@ -1,0 +1,1081 @@
+<!doctype html>
+<!--
+  index.html  -  front unico do projeto (home + Parte 1 + Parte 2).
+  [IA] Claude Code – front/UX (front unico servido pelo src/servidor.py; so visualizacao/UX)
+
+  Servido por "python -m src.servidor" em http://127.0.0.1:8765/.
+  - Parte 1: a pagina do labirinto (src/web/labirinto.html, montada pelo viz.py)
+    aberta dentro deste front, sem perder nada dela.
+  - Parte 2: o Python monta o grafo (io.py + construcao.py) e roda os algoritmos
+    do grupo (algorithms.py) pela rota POST /api/parte2/rodar. NENHUM algoritmo
+    de busca roda aqui: a pagina so desenha o que o servidor devolve.
+  Bibliotecas (so desenho/UX, salvas em src/web/vendor para funcionar sem internet):
+    React + htm (interface), graphology (estrutura para desenhar), sigma.js (desenho
+    WebGL do grafo) e graphology-layout-forceatlas2 (posicoes do desenho).
+-->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Teoria dos Grafos + AVD</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+  /* mesmas cores e fontes da pagina da Parte 1 (src/web/labirinto.html) */
+  :root{
+    --bg:#0b1020; --bg2:#0f1629; --card:#141c31; --card2:#1a2440; --linha:#26314f; --linha2:#33416a;
+    --txt:#eef2ff; --txt2:#a5b0cc; --txt3:#6b7799;
+    --acento:#7c9cff; --acento2:#5b7cf5; --sobre-acento:#0b1020; --roxo:#c084fc;
+    --ok:#34d399; --erro:#f87171; --alerta:#fbbf24;
+    --papel:#ffffff;
+    --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --r:14px; --sombra:0 1px 0 rgba(255,255,255,.03) inset,0 10px 30px -12px rgba(0,0,0,.6);
+    --alt-topo:4.1rem;
+    color-scheme:dark;
+  }
+  :root[data-theme="light"]{
+    --bg:#f3f5fb; --bg2:#e9edf7; --card:#ffffff; --card2:#f5f7fc; --linha:#dde3f0; --linha2:#c8d1e4;
+    --txt:#0f172a; --txt2:#475569; --txt3:#7a879f;
+    --acento:#4f6bed; --acento2:#3b55d4; --sobre-acento:#ffffff; --roxo:#9b5de5;
+    --ok:#059669; --erro:#dc2626; --alerta:#b45309;
+    --sombra:0 1px 2px rgba(15,23,42,.06),0 8px 24px -12px rgba(15,23,42,.18);
+    color-scheme:light;
+  }
+  *{box-sizing:border-box}
+  html{font-size:17px}
+  html,body{margin:0;background:var(--bg);color:var(--txt);font-family:var(--sans)}
+  body{min-height:100vh;line-height:1.5;-webkit-font-smoothing:antialiased;
+       background:radial-gradient(1200px 520px at 10% -10%,rgba(124,156,255,.12),transparent 60%),
+                  radial-gradient(900px 480px at 100% 0%,rgba(192,132,252,.08),transparent 60%),var(--bg)}
+  button,select,input{font:inherit;color:inherit}
+  button{cursor:pointer}
+  .mono{font-family:var(--mono)}
+  :focus-visible{outline:2px solid var(--acento);outline-offset:2px;border-radius:6px}
+  .erro-carga{max-width:40rem;margin:4rem auto;padding:1.2rem;border-radius:12px;border:1px solid var(--erro)}
+
+  /* ---------------- barra do topo ---------------- */
+  .topo{position:sticky;top:0;z-index:20;height:var(--alt-topo);display:flex;align-items:center;gap:1rem;padding:0 1rem;
+        background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--linha)}
+  .marca{display:flex;align-items:center;gap:.6rem;background:none;border:0;padding:.2rem;border-radius:10px;text-align:left}
+  .logo{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;flex:none;
+        background:linear-gradient(135deg,var(--acento),var(--roxo));color:#0b1020;font-weight:800;font-family:var(--mono)}
+  .marca b{display:block;font-size:.95rem;letter-spacing:-.01em;white-space:nowrap}
+  .marca small{display:block;font-size:.72rem;color:var(--txt3);white-space:nowrap}
+  .topo .alternador{margin:0 auto}
+  .icone{background:var(--card2);border:1px solid var(--linha);border-radius:10px;height:38px;padding:0 .75rem;flex:none;
+         color:var(--txt2);font-size:.8rem;display:inline-flex;align-items:center;gap:.4rem;transition:.15s;white-space:nowrap}
+  .icone:hover{border-color:var(--acento);color:var(--txt)}
+
+  /* ---------------- o switch Parte 1 / Parte 2 ---------------- */
+  .alternador{position:relative;display:grid;grid-template-columns:1fr 1fr;background:var(--bg2);border:1px solid var(--linha);
+              border-radius:999px;padding:4px;box-shadow:var(--sombra)}
+  .alternador .trilho{position:absolute;top:4px;bottom:4px;left:4px;width:calc(50% - 4px);border-radius:999px;opacity:0;
+              background:linear-gradient(135deg,var(--acento),var(--roxo));box-shadow:0 6px 18px -6px color-mix(in srgb,var(--acento) 70%,transparent);
+              transition:transform .38s cubic-bezier(.3,.7,.25,1),opacity .2s}
+  .alternador[data-atual="parte1"] .trilho{opacity:1;transform:translateX(0)}
+  .alternador[data-atual="parte2"] .trilho{opacity:1;transform:translateX(100%)}
+  .opcao{position:relative;z-index:1;background:none;border:0;border-radius:999px;padding:.42rem 1.1rem;display:flex;align-items:center;
+         justify-content:center;gap:.55rem;color:var(--txt2);font-weight:600;font-size:.85rem;white-space:nowrap;transition:color .2s}
+  .opcao:hover{color:var(--txt)}
+  .opcao[aria-checked="true"]{color:#0b1020}
+  .opcao-num{font-family:var(--mono);font-size:.72rem;font-weight:700;border-radius:999px;padding:.05rem .45rem;
+             border:1px solid currentColor;opacity:.85}
+  .alternador.grande{padding:6px;width:min(46rem,100%)}
+  .alternador.grande .trilho{top:6px;bottom:6px;left:6px;width:calc(50% - 6px)}
+  .alternador.grande .opcao{padding:1.05rem 1.4rem;gap:.9rem;justify-content:flex-start;text-align:left;border-radius:999px}
+  .alternador.grande .opcao-txt b{display:block;font-size:1.15rem;letter-spacing:-.01em}
+  .alternador.grande .opcao-txt small{display:block;font-weight:500;font-size:.78rem;opacity:.8}
+  .alternador.grande .opcao-num{font-size:.8rem;padding:.15rem .55rem}
+  .alternador:not([data-atual]) .opcao:hover,.alternador[data-atual=""] .opcao:hover{background:color-mix(in srgb,var(--acento) 12%,transparent)}
+
+  /* ---------------- home ---------------- */
+  .home{min-height:calc(100vh - var(--alt-topo));display:flex;flex-direction:column;align-items:center;justify-content:center;
+        gap:2.2rem;padding:2.5rem 1rem 4rem}
+  .home-titulo{text-align:center;display:flex;flex-direction:column;align-items:center;gap:.6rem}
+  .home-titulo .logo{width:68px;height:68px;border-radius:20px;font-size:2.1rem}
+  .home-titulo h1{margin:.3rem 0 0;font-size:clamp(1.8rem,4.2vw,2.8rem);letter-spacing:-.03em;line-height:1.1}
+  .home-titulo h1 span{background:linear-gradient(135deg,var(--acento),var(--roxo));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .home-titulo p{margin:0;color:var(--txt2);max-width:42rem}
+  .home-dica{font-size:.85rem;color:var(--txt3);margin-top:-1.2rem}
+  .home-cartoes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;width:min(46rem,100%)}
+  .home-cartao{background:var(--card);border:1px solid var(--linha);border-radius:18px;padding:1.1rem 1.2rem;box-shadow:var(--sombra);
+               display:flex;flex-direction:column;gap:.45rem;text-align:left;transition:.18s}
+  .home-cartao:hover{border-color:var(--acento);transform:translateY(-2px)}
+  .home-cartao h2{margin:0;font-size:1rem}
+  .home-cartao p{margin:0;color:var(--txt2);font-size:.86rem}
+  .numeros{display:flex;gap:1.1rem;flex-wrap:wrap;margin-top:.2rem}
+  .numeros div{display:flex;flex-direction:column}
+  .numeros b{font-family:var(--mono);font-size:1.15rem;font-variant-numeric:tabular-nums}
+  .numeros span{font-size:.72rem;color:var(--txt3)}
+  @media (max-width:700px){
+    .home-cartoes{grid-template-columns:1fr}
+    .alternador.grande{grid-template-columns:1fr;border-radius:22px}
+    .alternador.grande .trilho{width:calc(100% - 12px);height:calc(50% - 6px);bottom:auto;border-radius:18px}
+    .alternador.grande[data-atual="parte2"] .trilho{transform:translateY(100%)}
+    .alternador.grande .opcao{border-radius:18px}
+  }
+
+  /* ---------------- parte 1 (labirinto embutido) ---------------- */
+  .quadro-p1{display:block;width:100%;height:calc(100vh - var(--alt-topo));border:0;background:var(--bg)}
+
+  /* ---------------- parte 2 ---------------- */
+  .p2{max-width:1680px;margin:0 auto;padding:.9rem 1rem 2rem;display:flex;flex-direction:column;gap:.9rem}
+  .cartao{background:var(--card);border:1px solid var(--linha);border-radius:var(--r);box-shadow:var(--sombra)}
+  .resumo{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:1rem;padding:1rem 1.1rem}
+  .resumo h2{margin:0 0 .15rem;font-size:1.2rem;letter-spacing:-.01em}
+  .resumo .sub{margin:0 0 .7rem;color:var(--txt2);font-size:.86rem}
+  .tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.5rem}
+  .tile{background:var(--bg2);border:1px solid var(--linha);border-radius:11px;padding:.5rem .7rem;min-width:0}
+  .tile span{display:block;font-size:.7rem;color:var(--txt3)}
+  .tile b{font-family:var(--mono);font-size:1.15rem;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .tile small{display:block;font-size:.7rem;color:var(--txt2)}
+  .pergunta{margin:0;border-left:3px solid var(--acento);background:color-mix(in srgb,var(--acento) 8%,transparent);
+            border-radius:0 12px 12px 0;padding:.8rem 1rem;display:flex;flex-direction:column;gap:.35rem}
+  .pergunta .rot{font-size:.7rem;font-weight:700;color:var(--acento);text-transform:uppercase;letter-spacing:.08em}
+  .pergunta p{margin:0;font-size:1rem;font-weight:600;line-height:1.45}
+  .pergunta cite{font-style:normal;font-size:.72rem;color:var(--txt3)}
+  @media (max-width:1100px){.resumo{grid-template-columns:1fr}}
+  @media (max-width:560px){.tiles{grid-template-columns:1fr 1fr}}
+
+  .abas{display:flex;gap:.3rem;flex-wrap:wrap;background:var(--bg2);border:1px solid var(--linha);border-radius:12px;padding:4px;align-self:flex-start}
+  .abas button{background:none;border:0;border-radius:9px;padding:.42rem .95rem;font-size:.86rem;font-weight:600;color:var(--txt3);transition:.15s}
+  .abas button:hover{color:var(--txt)}
+  .abas button[aria-selected="true"]{background:var(--card);color:var(--txt);box-shadow:0 1px 0 var(--linha2),0 4px 12px -6px rgba(0,0,0,.4)}
+
+  /* altura: o desenho inteiro cabe na tela junto com o resumo e as abas */
+  .area-grafo{display:grid;grid-template-columns:minmax(0,1fr) 24rem;gap:.9rem;height:max(32rem,calc(100vh - var(--alt-topo) - 19.5rem))}
+  .palco{position:relative;overflow:hidden;min-height:0;background:var(--bg2)}
+  .tela-grafo{position:absolute;inset:0}
+  .sobre-palco{position:absolute;left:.7rem;top:.7rem;right:.7rem;display:flex;justify-content:space-between;gap:.6rem;pointer-events:none;flex-wrap:wrap}
+  .sobre-palco>*{pointer-events:auto}
+  .selo{display:inline-flex;align-items:center;gap:.45rem;background:color-mix(in srgb,var(--card) 88%,transparent);backdrop-filter:blur(6px);
+        border:1px solid var(--linha);border-radius:999px;padding:.28rem .75rem;font-size:.76rem;color:var(--txt2)}
+  .selo b{font-family:var(--mono);color:var(--txt)}
+  .zoom{position:absolute;right:.7rem;bottom:.7rem;display:flex;flex-direction:column;gap:.3rem}
+  .zoom button{width:36px;height:36px;border-radius:10px;background:color-mix(in srgb,var(--card) 90%,transparent);border:1px solid var(--linha);
+               color:var(--txt2);font-size:1rem;display:grid;place-items:center}
+  .zoom button:hover{border-color:var(--acento);color:var(--txt)}
+  .legenda{position:absolute;left:.7rem;bottom:.7rem;display:flex;flex-direction:column;gap:.25rem;font-size:.74rem;color:var(--txt2);
+           background:color-mix(in srgb,var(--card) 88%,transparent);backdrop-filter:blur(6px);border:1px solid var(--linha);border-radius:10px;padding:.45rem .65rem}
+  .legenda span{display:flex;align-items:center;gap:.45rem}
+  .legenda i{display:inline-block;flex:none}
+  .legenda .bola{width:9px;height:9px;border-radius:50%}
+  .legenda .traco{width:18px;height:3px;border-radius:2px}
+  .progresso{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--card);border:1px solid var(--linha);
+             border-radius:14px;padding:.9rem 1.1rem;box-shadow:var(--sombra);display:flex;flex-direction:column;gap:.5rem;min-width:16rem;text-align:center;font-size:.85rem}
+  .progresso.canto{left:auto;top:auto;right:3.6rem;bottom:.7rem;transform:none;min-width:13rem;padding:.55rem .8rem;font-size:.76rem;gap:.35rem}
+  .barra{height:6px;border-radius:99px;background:var(--linha);overflow:hidden}
+  .barra i{display:block;height:100%;background:linear-gradient(90deg,var(--acento),var(--roxo));border-radius:99px;transition:width .2s}
+  .link{background:none;border:0;padding:0;color:var(--acento);font-weight:600;font-size:inherit}
+  .link:hover{text-decoration:underline}
+
+  .painel{display:flex;flex-direction:column;gap:.75rem;overflow:auto;min-height:0;padding-right:2px}
+  .bloco{background:var(--card);border:1px solid var(--linha);border-radius:var(--r);padding:.8rem .9rem;box-shadow:var(--sombra)}
+  .bloco h3{font-size:.72rem;font-weight:700;color:var(--txt3);margin:0 0 .55rem;letter-spacing:.08em;text-transform:uppercase;
+            display:flex;align-items:center;justify-content:space-between;gap:.5rem}
+  .algs{display:grid;grid-template-columns:1fr 1fr;gap:.4rem}
+  .alg{border:1px solid var(--linha);background:var(--bg2);border-radius:11px;padding:.45rem .6rem;text-align:left;transition:.15s;display:flex;flex-direction:column}
+  .alg b{font-size:.88rem}
+  .alg small{font-size:.7rem;color:var(--txt3);line-height:1.3}
+  .alg:hover{border-color:var(--linha2)}
+  .alg[aria-pressed="true"]{border-color:var(--acento);background:color-mix(in srgb,var(--acento) 14%,var(--bg2))}
+  .alg[aria-pressed="true"] small{color:var(--txt2)}
+  .nota-alg{margin-top:.5rem;font-size:.75rem;color:var(--alerta);display:flex;gap:.4rem;align-items:flex-start}
+  .campos{display:grid;grid-template-columns:1fr auto 1fr;gap:.4rem;align-items:end;margin-top:.7rem}
+  .campo{display:flex;flex-direction:column;gap:.2rem;min-width:0}
+  .campo span{font-size:.72rem;color:var(--txt3);font-weight:600}
+  .campo input{background:var(--bg2);border:1px solid var(--linha);border-radius:9px;padding:.45rem .6rem;font-family:var(--mono);font-size:.92rem;width:100%}
+  .campo input:focus{border-color:var(--acento);outline:none}
+  .campo input[aria-invalid="true"]{border-color:var(--erro)}
+  .trocar{height:2.2rem;width:2.2rem;border-radius:9px;border:1px solid var(--linha);background:var(--card2);color:var(--txt2)}
+  .trocar:hover{border-color:var(--acento);color:var(--txt)}
+  .rodar{margin-top:.7rem;width:100%;height:2.7rem;border-radius:11px;border:0;font-weight:700;font-size:.95rem;color:#0b1020;
+         background:linear-gradient(135deg,var(--acento),var(--roxo));display:flex;align-items:center;justify-content:center;gap:.5rem;transition:filter .15s}
+  .rodar:hover:not(:disabled){filter:brightness(1.08)}
+  .rodar:disabled{opacity:.6;cursor:progress}
+  .gira{width:15px;height:15px;border:2px solid rgba(11,16,32,.35);border-top-color:#0b1020;border-radius:50%;animation:gira .8s linear infinite}
+  @keyframes gira{to{transform:rotate(360deg)}}
+  .erro-campo{margin-top:.45rem;font-size:.78rem;color:var(--erro)}
+  .dica{font-size:.74rem;color:var(--txt3);margin-top:.45rem}
+
+  .etiqueta{font-family:var(--mono);font-size:.72rem;padding:.12rem .5rem;border-radius:6px;background:var(--card2);border:1px solid var(--linha);color:var(--txt2);white-space:nowrap}
+  .etiqueta.ok{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 40%,transparent)}
+  .etiqueta.erro{color:var(--erro);border-color:color-mix(in srgb,var(--erro) 40%,transparent)}
+  .etiqueta.alerta{color:var(--alerta);border-color:color-mix(in srgb,var(--alerta) 40%,transparent)}
+  .infos{display:grid;grid-template-columns:1fr 1fr;gap:.45rem .8rem;margin-top:.6rem}
+  .info{display:flex;flex-direction:column;min-width:0}
+  .info>span:first-child{font-size:.72rem;color:var(--txt3);line-height:1.3}
+  .info>span:last-child{font-family:var(--mono);font-size:.95rem;font-weight:600;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+  .info.largo{grid-column:1/-1}
+  .destaque-num{font-family:var(--mono);font-size:1.6rem;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1.1}
+  .caminho{display:flex;flex-wrap:wrap;gap:.25rem;align-items:center;margin-top:.35rem;max-height:13rem;overflow:auto;padding:.1rem}
+  .v{font-family:var(--mono);font-size:.78rem;font-weight:600;padding:.08rem .42rem;border-radius:6px;background:var(--bg2);border:1px solid var(--linha);
+     cursor:pointer}
+  .v:hover{border-color:var(--acento)}
+  .v.ponta{border-color:var(--acento);color:var(--acento)}
+  .seta{font-family:var(--mono);font-size:.68rem;color:var(--txt3)}
+  .seta.neg{color:var(--erro)}
+  .aviso{border-radius:11px;padding:.6rem .75rem;font-size:.8rem;line-height:1.5;border:1px solid;margin-top:.6rem}
+  .aviso b{display:block}
+  .aviso.erro{background:color-mix(in srgb,var(--erro) 9%,transparent);border-color:color-mix(in srgb,var(--erro) 40%,transparent)}
+  .aviso.alerta{background:color-mix(in srgb,var(--alerta) 9%,transparent);border-color:color-mix(in srgb,var(--alerta) 40%,transparent)}
+  .aviso.neutro{background:var(--bg2);border-color:var(--linha)}
+  .aviso code{font-family:var(--mono);font-size:.74rem;word-break:break-word;color:var(--txt2)}
+  .botao{display:inline-flex;align-items:center;justify-content:center;gap:.45rem;border:1px solid var(--linha);background:var(--card2);
+         border-radius:10px;padding:.45rem .8rem;font-size:.84rem;font-weight:600;color:var(--txt);transition:.15s;width:100%}
+  .botao:hover:not(:disabled){border-color:var(--acento)}
+  .botao.perigo{border-color:color-mix(in srgb,var(--erro) 45%,transparent);color:var(--erro)}
+  .botao.perigo[aria-pressed="true"]{background:color-mix(in srgb,var(--erro) 14%,var(--card2))}
+  .botao:disabled{opacity:.45;cursor:not-allowed}
+  .linha-botoes{display:flex;gap:.4rem;margin-top:.55rem}
+
+  /* resultados salvos */
+  .grade-res{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.9rem}
+  .grade-res .largo{grid-column:1/-1}
+  @media (max-width:1100px){.grade-res{grid-template-columns:1fr}}
+  .bloco h4{margin:0 0 .2rem;font-size:1rem}
+  .bloco .sub{margin:0 0 .6rem;font-size:.8rem;color:var(--txt3)}
+  .rolar-x{overflow-x:auto}
+  table.tab{width:100%;border-collapse:collapse;font-size:.85rem}
+  table.tab th{font-size:.7rem;color:var(--txt3);font-weight:600;text-align:left;padding:.4rem .5rem;border-bottom:1px solid var(--linha);white-space:nowrap}
+  table.tab td{padding:.5rem .5rem;border-bottom:1px solid var(--linha);font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+  table.tab tbody tr:last-child td{border-bottom:0}
+  table.tab .num{text-align:right}
+  table.tab th.grupo-col{text-align:center;color:var(--txt2);border-bottom:1px solid var(--linha2)}
+  .camadas{font-size:.78rem;color:var(--txt2)}
+
+  /* AVD */
+  .avd-intro{font-size:.85rem;color:var(--txt2);margin:0}
+  .grade-avd{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.9rem;align-items:start}
+  .figura.larga{grid-column:1/-1}
+  @media (max-width:1100px){.grade-avd{grid-template-columns:1fr}}
+  .figura{display:flex;flex-direction:column;gap:.6rem;padding:.9rem;margin:0}
+  .figura figcaption{display:flex;align-items:baseline;justify-content:space-between;gap:.6rem}
+  .figura figcaption b{font-size:.95rem}
+  .figura figcaption small{font-size:.7rem;color:var(--txt3);white-space:nowrap}
+  .papel{background:var(--papel);border-radius:10px;border:1px solid var(--linha);padding:.4rem;display:flex;justify-content:center;cursor:zoom-in}
+  .papel img{max-width:100%;height:auto;display:block}
+  .nota{border:1px dashed var(--linha2);border-radius:10px;padding:.55rem .7rem;display:flex;flex-direction:column;gap:.15rem}
+  .nota span{font-size:.7rem;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.08em}
+  .nota p{margin:0;font-size:.86rem;color:var(--txt3);font-style:italic}
+  .lupa{position:fixed;inset:0;z-index:50;background:rgba(5,8,18,.82);display:flex;align-items:center;justify-content:center;padding:2rem;cursor:zoom-out}
+  .lupa img{max-width:100%;max-height:100%;background:#fff;border-radius:10px;padding:.5rem}
+
+  @media (max-width:1060px){
+    .area-grafo{grid-template-columns:1fr;height:auto}
+    .palco{height:62vh}
+    .painel{overflow:visible}
+  }
+  @media (max-width:760px){
+    .topo{height:auto;flex-wrap:wrap;padding:.55rem 1rem;gap:.5rem}
+    .topo .alternador{order:3;width:100%}
+    .marca small{display:none}
+    .quadro-p1{height:calc(100vh - 7.2rem)}
+  }
+  @media (max-width:520px){
+    .topo .opcao-num{display:none}
+    .topo .opcao{padding:.42rem .5rem}
+    .topo .opcao-extra{display:none}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div id="app"><div class="erro-carga" id="carregando">Carregando…</div></div>
+
+<script src="vendor/react.production.min.js"></script>
+<script src="vendor/react-dom.production.min.js"></script>
+<script src="vendor/htm.umd.js"></script>
+<script src="vendor/graphology.umd.min.js"></script>
+<script src="vendor/sigma.min.js"></script>
+<script src="vendor/graphology-layout-forceatlas2.min.js"></script>
+
+<script>
+// [IA] Claude Code – front/UX (front unico: home, Parte 1 embutida e Parte 2)
+"use strict";
+(function(){
+if (!window.React || !window.ReactDOM || !window.htm){
+  document.getElementById("carregando").textContent =
+    "Não foi possível carregar as bibliotecas de src/web/vendor. Abra a página pelo \"python -m src.servidor\".";
+  return;
+}
+const {useState, useEffect, useMemo, useRef, useCallback} = React;
+const html = htm.bind(React.createElement);
+
+// ------------------------------------------------------------------ utilidades
+const fmtInt = n => n === null || n === undefined ? "—" : Number(n).toLocaleString("pt-BR");
+const fmtTempo = s => s === null || s === undefined ? "—"
+  : s < 1 ? (s * 1000).toLocaleString("pt-BR", {maximumFractionDigits: s < 0.01 ? 3 : 1}) + " ms"
+  : s.toLocaleString("pt-BR", {maximumFractionDigits: 2}) + " s";
+const fmtPeso = p => (p > 0 ? "+" : p < 0 ? "−" : "") + Math.abs(p);
+const lerTema = () => {
+  try { const t = localStorage.getItem("tema"); if (t === "light" || t === "dark") return t; } catch (e) {}
+  return window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+};
+const cache = {};
+async function pegar(url){
+  if (!cache[url]) cache[url] = fetch(url).then(async r => {
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.erro || ("erro " + r.status));
+    return j;
+  }).catch(e => { delete cache[url]; throw e; });
+  return cache[url];
+}
+function useDados(url){
+  const [estado, setEstado] = useState({dados: null, erro: null});
+  useEffect(() => {
+    let vivo = true;
+    pegar(url).then(d => vivo && setEstado({dados: d, erro: null}))
+              .catch(e => vivo && setEstado({dados: null, erro: e.message}));
+    return () => { vivo = false; };
+  }, [url]);
+  return estado;
+}
+
+const PARTES = [
+  {id: "parte1", num: "1", titulo: "Parte 1 — Labirinto", sub: "grafo de estados com chaves e portas"},
+  {id: "parte2", num: "2", titulo: "Parte 2 — Bitcoin Alpha", sub: "rede de confiança dirigida e ponderada"},
+];
+
+// ------------------------------------------------------------------ switch Parte 1 / Parte 2
+function Alternador({atual, ir, grande}){
+  const teclas = ev => {
+    if (ev.key === "ArrowRight" || ev.key === "ArrowDown"){ ev.preventDefault(); ir("parte2"); }
+    if (ev.key === "ArrowLeft" || ev.key === "ArrowUp"){ ev.preventDefault(); ir("parte1"); }
+  };
+  return html`
+    <div className=${"alternador" + (grande ? " grande" : "")} data-atual=${atual || ""} role="radiogroup"
+         aria-label="Escolher a parte do projeto" onKeyDown=${teclas}>
+      <span className="trilho" aria-hidden="true"></span>
+      ${PARTES.map(p => html`
+        <button key=${p.id} className="opcao" role="radio" aria-checked=${atual === p.id}
+                tabIndex=${atual ? (atual === p.id ? 0 : -1) : 0} onClick=${() => ir(p.id)}>
+          <span className="opcao-num">${p.num}</span>
+          <span className="opcao-txt">${grande
+            ? html`<b>${p.titulo}</b><small>${p.sub}</small>`
+            : html`<b>Parte ${p.num}<span className="opcao-extra"> · ${p.titulo.split(" — ")[1]}</span></b>`}</span>
+        </button>`)}
+    </div>`;
+}
+
+function Topo({tela, ir, tema, setTema}){
+  return html`
+    <header className="topo">
+      <button className="marca" onClick=${() => ir("")} aria-label="Ir para a página inicial">
+        <span className="logo">G</span>
+        <span><b>Teoria dos Grafos + AVD</b><small>Projeto Final 2026.2</small></span>
+      </button>
+      ${tela ? html`<${Alternador} atual=${tela} ir=${ir}/>` : html`<span style=${{marginLeft: "auto"}}></span>`}
+      <button className="icone" onClick=${() => setTema(t => t === "light" ? "dark" : "light")}
+              aria-label="Alternar tema claro/escuro">${tema === "light" ? "☾ escuro" : "☀ claro"}</button>
+    </header>`;
+}
+
+// ------------------------------------------------------------------ home
+function Home({ir}){
+  const ping = useDados("api/ping").dados;
+  const resumo = useDados("api/parte2/resumo").dados;
+  return html`
+    <main className="home">
+      <div className="home-titulo">
+        <span className="logo">G</span>
+        <h1>Teoria dos Grafos <span>+ AVD</span></h1>
+        <p>Projeto Final 2026.2 · Labirinto com chaves (grafo de estados) e rede de confiança Bitcoin Alpha</p>
+      </div>
+      <${Alternador} atual="" ir=${ir} grande=${true}/>
+      <p className="home-dica">Escolha uma parte no seletor acima. A escolha fica no endereço (#parte1 / #parte2).</p>
+      <div className="home-cartoes">
+        <button className="home-cartao" onClick=${() => ir("parte1")}>
+          <h2>Labirinto com chaves</h2>
+          <p>Cada mapa vira um grafo de estados (posição, chaves, bônus). Animação passo a passo, camadas, armadilhas e comparação de algoritmos.</p>
+          <div className="numeros">
+            <div><b>${ping ? ping.mapas : "…"}</b><span>mapas</span></div>
+            <div><b>4</b><span>algoritmos</span></div>
+          </div>
+        </button>
+        <button className="home-cartao" onClick=${() => ir("parte2")}>
+          <h2>Bitcoin Alpha</h2>
+          <p>Rede de confiança real: cada vértice é um usuário e cada arco é uma avaliação de −10 a +10.</p>
+          <div className="numeros">
+            <div><b>${resumo ? fmtInt(resumo.vertices) : "…"}</b><span>vértices</span></div>
+            <div><b>${resumo ? fmtInt(resumo.arestas) : "…"}</b><span>arcos</span></div>
+          </div>
+        </button>
+      </div>
+    </main>`;
+}
+
+// ------------------------------------------------------------------ parte 1: o labirinto que ja existe
+function Parte1({tema, visivel}){
+  const ref = useRef(null);
+  const [src] = useState(() => "parte1?tema=" + tema + "#parte1");   // so na 1a vez: trocar tema nao recarrega
+  useEffect(() => {
+    const w = ref.current && ref.current.contentWindow;
+    if (w) w.postMessage({tema}, location.origin);
+  }, [tema]);
+  const aoCarregar = () => { const w = ref.current && ref.current.contentWindow; if (w) w.postMessage({tema}, location.origin); };
+  return html`<iframe ref=${ref} className="quadro-p1" src=${src} title="Parte 1 — Labirinto interativo"
+                      onLoad=${aoCarregar} style=${{display: visivel ? "block" : "none"}}></iframe>`;
+}
+
+// ------------------------------------------------------------------ parte 2: desenho do grafo (sigma.js)
+const INFO_ALG = {
+  BFS:          {nome: "BFS",          ideia: "menor nº de arcos"},
+  DFS:          {nome: "DFS",          ideia: "caminho na árvore de profundidade"},
+  DIJKSTRA:     {nome: "Dijkstra",     ideia: "menor custo (só pesos ≥ 0)"},
+  BELLMAN_FORD: {nome: "Bellman-Ford", ideia: "menor custo com pesos negativos"},
+};
+const ORDEM_ALG = ["BFS", "DFS", "DIJKSTRA", "BELLMAN_FORD"];
+
+const PALETAS = {
+  // cores OPACAS ja misturadas com o fundo: o WebGL do sigma soma transparencias e milhares de arcos viram branco
+  dark:  {no: "#7c9cff", noApagado: "#232e50", arcoPos: "#2c354d", arcoNeg: "#8f4851",
+          arcoApagado: "#151c31", caminho: "#34d399", ciclo: "#f87171", ponta: "#fbbf24", rotulo: "#eef2ff",
+          hoverFundo: "#1a2440", hoverTxt: "#eef2ff"},
+  light: {no: "#4f6bed", noApagado: "#cad3f5", arcoPos: "#ccd2dd", arcoNeg: "#e2898e",
+          arcoApagado: "#e2e6f1", caminho: "#059669", ciclo: "#dc2626", ponta: "#d97706", rotulo: "#0f172a",
+          hoverFundo: "#ffffff", hoverTxt: "#0f172a"},
+};
+let PAL = PALETAS.dark;            // lida pelos "reducers" do sigma a cada quadro
+const CHAVE_LAYOUT = "p2-layout-v2";
+
+// destaque atual no desenho: {nos:Set, arcos:Set, pontas:Set, tipo:"caminho"|"ciclo"} ou null
+const DESTAQUE = {atual: null, selecionado: null};
+
+function montarGrafo(dados){
+  const Graph = graphology.DirectedGraph || graphology.Graph || graphology;
+  const g = new Graph({allowSelfLoops: true});
+  // posicao inicial em espiral (os de maior grau de entrada no centro): o layout parte sempre do mesmo lugar
+  const nos = dados.nos.slice().sort((a, b) => b[1] - a[1] || a[0] - b[0]);
+  nos.forEach(([id, gin, gout], i) => {
+    const r = Math.sqrt(i + 1), ang = i * 2.399963;
+    g.addNode(String(id), {x: r * Math.cos(ang), y: r * Math.sin(ang), size: Math.min(9, 1.2 + Math.sqrt(gin) * 0.45),
+                           label: String(id), grauEntrada: gin, grauSaida: gout});
+  });
+  for (const [u, v, p] of dados.arcos){
+    const k = u + ">" + v;
+    if (!g.hasEdge(k)) g.addDirectedEdgeWithKey(k, String(u), String(v), {peso: p, size: 0.6});
+  }
+  return g;
+}
+
+// ciclo [a, b, ..., a] -> destaque com os vertices e os arcos consecutivos
+function destaqueDoCiclo(ciclo){
+  const nos = new Set(ciclo.map(String)), arcos = new Set();
+  for (let i = 1; i < ciclo.length; i++) arcos.add(ciclo[i - 1] + ">" + ciclo[i]);
+  return {nos, arcos, pontas: new Set(), tipo: "ciclo"};
+}
+
+function lerLayoutSalvo(g){
+  try {
+    const s = JSON.parse(localStorage.getItem(CHAVE_LAYOUT) || "null");
+    if (!s || s.n !== g.order || s.m !== g.size) return false;
+    for (const k in s.pos){ if (g.hasNode(k)) g.mergeNodeAttributes(k, {x: s.pos[k][0], y: s.pos[k][1]}); }
+    return true;
+  } catch (e) { return false; }
+}
+function salvarLayout(g){
+  try {
+    const pos = {};
+    g.forEachNode((k, a) => { pos[k] = [Math.round(a.x * 100) / 100, Math.round(a.y * 100) / 100]; });
+    localStorage.setItem(CHAVE_LAYOUT, JSON.stringify({n: g.order, m: g.size, pos}));
+  } catch (e) {}
+}
+
+function desenharHover(ctx, d, s){
+  const tam = s.labelSize + 1, txt = d.label || "";
+  ctx.font = "700 " + tam + "px " + s.labelFont;
+  const w = ctx.measureText(txt).width, x = d.x + d.size + 5, y = d.y;
+  ctx.save();
+  ctx.shadowColor = "rgba(0,0,0,.35)"; ctx.shadowBlur = 10;
+  ctx.fillStyle = PAL.hoverFundo;
+  ctx.fillRect(x - 5, y - tam / 2 - 5, w + 10, tam + 10);
+  ctx.restore();
+  ctx.fillStyle = PAL.hoverTxt;
+  ctx.fillText(txt, x, y + tam / 3);
+  ctx.beginPath(); ctx.arc(d.x, d.y, d.size + 2.5, 0, Math.PI * 2);
+  ctx.strokeStyle = PAL.ponta; ctx.lineWidth = 2; ctx.stroke();
+}
+
+function reduzirNo(no, a){
+  const D = DESTAQUE.atual, r = Object.assign({}, a);
+  r.color = PAL.no;
+  if (D){
+    if (D.nos.has(no)){
+      r.color = D.pontas.has(no) ? PAL.ponta : PAL[D.tipo];
+      r.size = Math.max(a.size * 1.5, D.pontas.has(no) ? 9 : 6);
+      r.forceLabel = D.nos.size <= 40 || D.pontas.has(no);
+      r.zIndex = 2;
+    } else { r.color = PAL.noApagado; r.label = ""; r.zIndex = 0; }
+  }
+  if (DESTAQUE.selecionado === no){ r.highlighted = true; r.forceLabel = true; r.zIndex = 3; }
+  return r;
+}
+function reduzirArco(arco, a){
+  const D = DESTAQUE.atual, r = Object.assign({}, a);
+  r.color = a.peso < 0 ? PAL.arcoNeg : PAL.arcoPos;
+  r.zIndex = a.peso < 0 ? 1 : 0;           // notas negativas por cima (cor opaca: senao ficariam escondidas)
+  if (D){
+    if (D.arcos.has(arco)){ r.color = PAL[D.tipo]; r.size = 2.6; r.zIndex = 2; }
+    else { r.color = PAL.arcoApagado; r.zIndex = 0; }
+  }
+  return r;
+}
+
+function DesenhoGrafo({tema, visivel, destaque, selecionado, aoClicarVertice, avisarPronto}){
+  const caixa = useRef(null);
+  const sigmaRef = useRef(null);
+  const grafoRef = useRef(null);
+  const layoutRef = useRef(null);
+  const {dados, erro} = useDados("api/parte2/grafo");
+  const [layout, setLayout] = useState({rodando: false, pct: 0});
+
+  const rodarLayout = useCallback(() => {
+    const g = grafoRef.current;
+    if (!g || !window.graphologyFA2) return;
+    if (layoutRef.current){ layoutRef.current.kill(); layoutRef.current = null; }
+    const FA2 = graphologyFA2;
+    // "dissuadir hubs" espalha os usuarios muito avaliados e deixa o desenho menos embolado
+    const ajustes = Object.assign(FA2.forceAtlas2.inferSettings(g),
+      {barnesHutOptimize: true, outboundAttractionDistribution: true, strongGravityMode: false, gravity: 1, scalingRatio: 2});
+    const fa = new FA2.FA2Layout(g, {settings: ajustes});
+    layoutRef.current = fa;
+    const DURACAO = 9000, t0 = performance.now();
+    setLayout({rodando: true, pct: 0});
+    fa.start();
+    const passo = () => {
+      if (layoutRef.current !== fa) return;
+      const pct = Math.min(1, (performance.now() - t0) / DURACAO);
+      setLayout({rodando: pct < 1, pct});
+      if (pct < 1) setTimeout(passo, 200);
+      else { fa.stop(); fa.kill(); layoutRef.current = null; salvarLayout(g); }
+    };
+    setTimeout(passo, 200);
+  }, []);
+  const pararLayout = () => {
+    const fa = layoutRef.current;
+    if (!fa) return;
+    fa.stop(); fa.kill(); layoutRef.current = null;
+    salvarLayout(grafoRef.current);
+    setLayout({rodando: false, pct: 1});
+  };
+
+  // cria o desenho uma vez, quando os dados chegam
+  useEffect(() => {
+    if (!dados || !caixa.current) return;
+    const g = montarGrafo(dados);
+    grafoRef.current = g;
+    const SigmaCls = Sigma.default || Sigma.Sigma || Sigma;
+    const s = new SigmaCls(g, caixa.current, {
+      defaultEdgeType: "arrow", renderEdgeLabels: false, zIndex: true, hideEdgesOnMove: false,
+      labelFont: "Inter, system-ui, sans-serif", labelSize: 12, labelWeight: "600",
+      labelColor: {color: PAL.rotulo}, labelRenderedSizeThreshold: 9, labelDensity: 0.6,
+      minCameraRatio: 0.02, maxCameraRatio: 4, stagePadding: 24,
+      allowInvalidContainer: true,     // a aba pode estar escondida (display:none) quando o desenho nasce
+      nodeReducer: reduzirNo, edgeReducer: reduzirArco, hoverRenderer: desenharHover,
+    });
+    sigmaRef.current = s;
+    s.on("clickNode", ({node}) => aoClicarVertice(Number(node)));
+    s.on("enterNode", () => { caixa.current.style.cursor = "pointer"; });
+    s.on("leaveNode", () => { caixa.current.style.cursor = ""; });
+    if (!lerLayoutSalvo(g)) rodarLayout();
+    avisarPronto(new Set(g.nodes()));
+    return () => {
+      if (layoutRef.current){ layoutRef.current.kill(); layoutRef.current = null; }
+      s.kill(); sigmaRef.current = null;
+    };
+  }, [dados]);
+
+  // tema: troca a paleta e redesenha
+  useEffect(() => {
+    PAL = PALETAS[tema] || PALETAS.dark;
+    const s = sigmaRef.current;
+    if (s){ s.setSetting("labelColor", {color: PAL.rotulo}); s.refresh(); }
+  }, [tema, dados]);
+
+  // a aba/parte voltou a aparecer: o sigma precisa medir o tamanho de novo
+  useEffect(() => {
+    const s = sigmaRef.current;
+    if (s && visivel){ s.resize(); s.refresh(); }
+  }, [visivel]);
+
+  // destaque (caminho, ciclo): redesenha e enquadra a camera nele
+  useEffect(() => {
+    DESTAQUE.atual = destaque;
+    const s = sigmaRef.current;
+    if (!s) return;
+    s.refresh();
+    if (destaque && destaque.nos.size) enquadrar([...destaque.nos]);
+  }, [destaque, dados]);
+
+  // vertice selecionado: so redesenha (sem mexer na camera)
+  useEffect(() => {
+    DESTAQUE.selecionado = selecionado === null || selecionado === undefined ? null : String(selecionado);
+    const s = sigmaRef.current;
+    if (s) s.refresh();
+  }, [selecionado, dados]);
+
+  function enquadrar(nos){
+    const s = sigmaRef.current;
+    if (!s) return;
+    let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+    for (const n of nos){
+      const d = s.getNodeDisplayData(n);
+      if (!d) continue;
+      x0 = Math.min(x0, d.x); x1 = Math.max(x1, d.x); y0 = Math.min(y0, d.y); y1 = Math.max(y1, d.y);
+    }
+    if (!isFinite(x0)) return;
+    const ratio = Math.min(1.1, Math.max(0.08, Math.max(x1 - x0, y1 - y0) * 1.5));
+    s.getCamera().animate({x: (x0 + x1) / 2, y: (y0 + y1) / 2, ratio}, {duration: 650});
+  }
+  const zoom = f => { const s = sigmaRef.current; if (s){ const c = s.getCamera(); c.animate({ratio: c.ratio * f}, {duration: 250}); } };
+  const recentrar = () => { const s = sigmaRef.current; if (s) s.getCamera().animatedReset({duration: 400}); };
+
+  return html`
+    <div className="cartao palco">
+      <div className="tela-grafo" ref=${caixa} aria-label="Desenho do grafo Bitcoin Alpha" role="img"></div>
+      ${!dados && !erro && html`<div className="progresso">Carregando o grafo…</div>`}
+      ${erro && html`<div className="progresso"><b>Não foi possível carregar o grafo</b><span>${erro}</span></div>`}
+      ${dados && html`
+        <div className="sobre-palco">
+          <span className="selo">grafo completo · <b>${fmtInt(dados.nos.length)}</b> vértices · <b>${fmtInt(dados.arcos.length)}</b> arcos</span>
+          ${!layout.rodando && html`<button className="selo" onClick=${rodarLayout} title="Recalcular as posições do desenho (ForceAtlas2)">↻ reorganizar desenho</button>`}
+        </div>
+        <div className="legenda" aria-label="Legenda">
+          <span><i className="bola" style=${{background: PALETAS[tema].no}}></i> vértice = usuário (tamanho = grau de entrada)</span>
+          <span><i className="traco" style=${{background: tema === "light" ? "#94a3b8" : "#64748b"}}></i> arco = avaliação com nota ${">"} 0</span>
+          <span><i className="traco" style=${{background: PALETAS[tema].ciclo}}></i> arco = avaliação com nota ${"<"} 0</span>
+        </div>
+        <div className="zoom">
+          <button onClick=${() => zoom(1 / 1.5)} aria-label="Aproximar">+</button>
+          <button onClick=${() => zoom(1.5)} aria-label="Afastar">−</button>
+          <button onClick=${recentrar} aria-label="Ver o grafo inteiro" title="Ver o grafo inteiro">⤢</button>
+        </div>`}
+      ${layout.rodando && html`
+        <div className="progresso canto" role="status">
+          <span>organizando o desenho (ForceAtlas2)… ${Math.round(layout.pct * 100)}%</span>
+          <div className="barra"><i style=${{width: (layout.pct * 100) + "%"}}></i></div>
+          <button className="link" onClick=${pararLayout}>parar aqui</button>
+        </div>`}
+    </div>`;
+}
+
+// ------------------------------------------------------------------ parte 2: painel de algoritmos
+function Caminho({caminho, pesos, aoClicar}){
+  const [tudo, setTudo] = useState(false);
+  useEffect(() => setTudo(false), [caminho]);
+  // caminho longo (ex.: DFS): mostra o comeco e o fim, com "ver todos" no meio
+  const n = caminho.length, INICIO = 14, FIM = 6;
+  const faixa = (a, b) => Array.from({length: b - a}, (_, k) => a + k);
+  const indices = tudo || n <= INICIO + FIM + 4 ? faixa(0, n) : [...faixa(0, INICIO), -1, ...faixa(n - FIM, n)];
+  return html`
+    <div className="caminho">
+      ${indices.map((i, j) => {
+        if (i === -1) return html`<button key="mais" className="link" onClick=${() => setTudo(true)}>… +${n - INICIO - FIM} (ver todos)</button>`;
+        const seta = i === 0 ? null : indices[j - 1] === i - 1
+          ? html`<span className=${"seta" + (pesos[i - 1] < 0 ? " neg" : "")}>→${fmtPeso(pesos[i - 1])}</span>`
+          : html`<span className="seta">→</span>`;
+        return html`<${React.Fragment} key=${i}>${seta}
+          <span className=${"v" + (i === 0 || i === n - 1 ? " ponta" : "")} onClick=${() => aoClicar(caminho[i])}
+                title="selecionar no desenho">${caminho[i]}</span><//>`;
+      })}
+    </div>`;
+}
+
+function Resultado({r, aoClicarVertice, usarDestino}){
+  if (!r) return null;
+  const titulo = INFO_ALG[r.algoritmo].nome + " · " + r.origem + " → " + r.destino;
+  const tempo = r.tempo_s !== undefined && html`
+    <div className="info"><span>tempo${r.em_cache ? " (da 1ª execução; resultado em cache)" : ""}</span><span>${fmtTempo(r.tempo_s)}</span></div>`;
+  if (r.status === "RECUSA") return html`
+    <div className="bloco" aria-live="polite">
+      <h3>Resultado <span className="etiqueta alerta">recusou</span></h3>
+      <div className="mono" style=${{fontSize: ".85rem", fontWeight: 600}}>${titulo}</div>
+      <div className="aviso alerta"><b>O Dijkstra do grupo recusou o grafo</b><code>${r.mensagem}</code></div>
+      <div className="aviso neutro"><b>Transformação de pesos: a definir pelo grupo</b>
+        Enquanto isso, o Dijkstra roda só como está no algorithms.py (recusa peso negativo).</div>
+    </div>`;
+  if (r.status === "SEM_CAMINHO") return html`
+    <div className="bloco" aria-live="polite">
+      <h3>Resultado <span className="etiqueta">sem caminho</span></h3>
+      <div className="mono" style=${{fontSize: ".85rem", fontWeight: 600}}>${titulo}</div>
+      <div className="aviso neutro">O vértice ${r.destino} não foi alcançado a partir de ${r.origem}.</div>
+      <div className="infos">
+        <div className="info"><span>vértices alcançados</span><span>${fmtInt(r.alcancados)}</span></div>
+        ${tempo}
+      </div>
+    </div>`;
+  if (r.status === "CICLO_NEGATIVO") return html`
+    <div className="bloco" aria-live="polite">
+      <h3>Resultado <span className="etiqueta erro">ciclo negativo</span></h3>
+      <div className="mono" style=${{fontSize: ".85rem", fontWeight: 600}}>${titulo}</div>
+      <div className="aviso erro"><b>O Bellman-Ford do grupo devolveu um ciclo negativo</b>
+        Com ciclo negativo alcançável, a distância até ${r.destino} não é definida. O ciclo está destacado no desenho.</div>
+      <div className="infos">
+        <div className="info largo"><span>ciclo</span><${Caminho} caminho=${r.ciclo} pesos=${r.pesos_ciclo} aoClicar=${aoClicarVertice}/></div>
+        <div className="info"><span>custo do ciclo</span><span style=${{color: "var(--erro)"}}>${fmtPeso(r.custo_ciclo)}</span></div>
+        ${tempo}
+      </div>
+    </div>`;
+  return html`
+    <div className="bloco" aria-live="polite">
+      <h3>Resultado <span className="etiqueta ok">ok</span></h3>
+      <div className="mono" style=${{fontSize: ".85rem", fontWeight: 600}}>${titulo}</div>
+      <div className="infos">
+        <div className="info largo"><span>${r.medida}</span><span className="destaque-num">${fmtPeso(r.distancia).replace("+", "")}</span></div>
+        <div className="info"><span>arcos no caminho</span><span>${fmtInt(r.n_arcos)}</span></div>
+        <div className="info"><span>soma dos pesos</span><span>${fmtPeso(r.soma_pesos)}</span></div>
+        <div className="info"><span>vértices alcançados</span><span>${fmtInt(r.alcancados)}</span></div>
+        ${tempo}
+        <div className="info largo"><span>caminho (→ nota da avaliação)</span>
+          <${Caminho} caminho=${r.caminho} pesos=${r.pesos_caminho} aoClicar=${aoClicarVertice}/></div>
+        ${r.mais_distantes && html`
+          <div className="info largo"><span>vértices no último nível da BFS (nível ${r.nivel_maximo}) — clique para usar como destino</span>
+            <div className="caminho">${r.mais_distantes.map(v => html`<span key=${v} className="v" onClick=${() => usarDestino(v)}>${v}</span>`)}</div></div>`}
+      </div>
+    </div>`;
+}
+
+function PainelAlgoritmos({vertices, relatorio, setDestaque, selecionado, setSelecionado, grauDe}){
+  const [alg, setAlg] = useState("BFS");
+  const [origem, setOrigem] = useState("7188");
+  const [destino, setDestino] = useState("3315");
+  const [rodando, setRodando] = useState(false);
+  const [segundos, setSegundos] = useState(0);
+  const [resultado, setResultado] = useState(null);
+  const [erro, setErro] = useState(null);
+  const [cicloVisivel, setCicloVisivel] = useState(false);
+
+  const existe = v => v !== "" && vertices && vertices.has(String(Number(v)));
+  const origemOk = !vertices || existe(origem), destinoOk = !vertices || existe(destino);
+
+  useEffect(() => {
+    if (!rodando) return;
+    const t0 = Date.now();
+    const id = setInterval(() => setSegundos(Math.floor((Date.now() - t0) / 1000)), 250);
+    return () => clearInterval(id);
+  }, [rodando]);
+
+  const destacarResultado = r => {
+    const pontas = new Set([String(r.origem), String(r.destino)]);
+    if (r.status === "OK"){
+      const nos = new Set(r.caminho.map(String)), arcos = new Set();
+      for (let i = 1; i < r.caminho.length; i++) arcos.add(r.caminho[i - 1] + ">" + r.caminho[i]);
+      setDestaque({nos, arcos, pontas, tipo: "caminho"});
+    } else if (r.status === "CICLO_NEGATIVO"){
+      setDestaque(destaqueDoCiclo(r.ciclo));
+    } else {
+      setDestaque({nos: pontas, arcos: new Set(), pontas, tipo: "caminho"});
+    }
+  };
+
+  const rodar = async () => {
+    if (!origemOk || !destinoOk) return;
+    setRodando(true); setErro(null); setSegundos(0); setCicloVisivel(false);
+    try {
+      const resp = await fetch("api/parte2/rodar", {method: "POST", headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({algoritmo: alg, origem: Number(origem), destino: Number(destino)})});
+      const r = await resp.json();
+      if (!resp.ok) throw new Error(r.erro || ("erro " + resp.status));
+      setResultado(r);
+      destacarResultado(r);
+    } catch (e) {
+      setErro(e.message); setResultado(null);
+    } finally {
+      setRodando(false);
+    }
+  };
+
+  const ciclo = relatorio && relatorio.BELLMAN_FORD && relatorio.BELLMAN_FORD.grafo_completo;
+  const alternarCiclo = () => {
+    if (cicloVisivel){ setCicloVisivel(false); setDestaque(null); return; }
+    setDestaque(destaqueDoCiclo(ciclo.ciclo));
+    setCicloVisivel(true);
+  };
+  const limpar = () => { setDestaque(null); setCicloVisivel(false); setSelecionado(null); };
+  const usarDestino = v => setDestino(String(v));
+
+  const sel = selecionado !== null && selecionado !== undefined ? grauDe(selecionado) : null;
+
+  return html`
+    <aside className="painel">
+      <div className="bloco">
+        <h3>Algoritmo <span className="etiqueta">algorithms.py do grupo</span></h3>
+        <div className="algs" role="group" aria-label="Algoritmo">
+          ${ORDEM_ALG.map(a => html`
+            <button key=${a} className="alg" aria-pressed=${alg === a} onClick=${() => setAlg(a)}>
+              <b>${INFO_ALG[a].nome}</b><small>${INFO_ALG[a].ideia}</small></button>`)}
+        </div>
+        ${alg === "DIJKSTRA" && html`<div className="nota-alg">⚠ transformação de pesos: a definir pelo grupo (o grafo tem notas negativas).</div>`}
+        ${alg === "BELLMAN_FORD" && html`<div className="nota-alg" style=${{color: "var(--txt3)"}}>⏱ no grafo inteiro o Bellman-Ford leva de 30 a 40 s (depois fica em cache).</div>`}
+        <div className="campos">
+          <label className="campo"><span>origem</span>
+            <input value=${origem} inputMode="numeric" list="lista-vertices" aria-invalid=${!origemOk}
+                   onChange=${e => setOrigem(e.target.value.replace(/\D/g, ""))} onKeyDown=${e => e.key === "Enter" && rodar()}/></label>
+          <button className="trocar" onClick=${() => { setOrigem(destino); setDestino(origem); }} aria-label="Trocar origem e destino" title="Trocar">⇄</button>
+          <label className="campo"><span>destino</span>
+            <input value=${destino} inputMode="numeric" list="lista-vertices" aria-invalid=${!destinoOk}
+                   onChange=${e => setDestino(e.target.value.replace(/\D/g, ""))} onKeyDown=${e => e.key === "Enter" && rodar()}/></label>
+        </div>
+        ${(!origemOk || !destinoOk) && html`<div className="erro-campo">${!origemOk ? "origem" : "destino"} não é um vértice do grafo.</div>`}
+        <button className="rodar" onClick=${rodar} disabled=${rodando || !origemOk || !destinoOk}>
+          ${rodando ? html`<span className="gira"></span> rodando ${INFO_ALG[alg].nome}… ${segundos} s` : "▶ Rodar"}
+        </button>
+        <div className="dica">Dica: clique num vértice do desenho para usá-lo como origem ou destino.</div>
+        ${erro && html`<div className="aviso erro"><b>Erro</b>${erro}</div>`}
+      </div>
+
+      ${sel && html`
+        <div className="bloco">
+          <h3>Vértice selecionado <button className="link" onClick=${() => setSelecionado(null)} aria-label="Fechar">×</button></h3>
+          <div className="destaque-num">${selecionado}</div>
+          <div className="infos">
+            <div className="info"><span>grau de entrada (avaliações recebidas)</span><span>${fmtInt(sel.entrada)}</span></div>
+            <div className="info"><span>grau de saída (avaliações feitas)</span><span>${fmtInt(sel.saida)}</span></div>
+          </div>
+          <div className="linha-botoes">
+            <button className="botao" onClick=${() => setOrigem(String(selecionado))}>usar como origem</button>
+            <button className="botao" onClick=${() => setDestino(String(selecionado))}>usar como destino</button>
+          </div>
+        </div>`}
+
+      <${Resultado} r=${resultado} aoClicarVertice=${setSelecionado} usarDestino=${usarDestino}/>
+
+      <div className="bloco">
+        <h3>Ciclo negativo <span className="etiqueta">parte2_report.json</span></h3>
+        ${ciclo ? html`
+          <div className="infos" style=${{marginTop: 0}}>
+            <div className="info largo"><span>ciclo devolvido pelo Bellman-Ford (fonte ${ciclo.fonte}, grafo completo)</span>
+              <span>${ciclo.ciclo.join(" → ")}</span></div>
+            <div className="info"><span>pesos</span><span>${(ciclo.pesos_ciclo || []).map(fmtPeso).join(", ")}</span></div>
+            <div className="info"><span>custo do ciclo</span><span style=${{color: "var(--erro)"}}>${fmtPeso(ciclo.custo_ciclo)}</span></div>
+          </div>
+          <div className="linha-botoes">
+            <button className="botao perigo" aria-pressed=${cicloVisivel} onClick=${alternarCiclo}>
+              ${cicloVisivel ? "Ocultar ciclo negativo" : "Mostrar ciclo negativo"}</button>
+          </div>` : html`<div className="dica" style=${{marginTop: 0}}>${relatorio === undefined ? "carregando…" : "relatório não encontrado."}</div>`}
+        <div className="linha-botoes"><button className="botao" onClick=${limpar}>Limpar destaque</button></div>
+      </div>
+    </aside>`;
+}
+
+// ------------------------------------------------------------------ parte 2: resultados que ja estao no parte2_report.json
+function ResultadosSalvos({rel, erro, verCiclo}){
+  if (erro) return html`<div className="bloco"><div className="aviso erro" style=${{marginTop: 0}}><b>Relatório indisponível</b>${erro}</div></div>`;
+  if (!rel) return html`<div className="bloco">Carregando out/parte2/parte2_report.json…</div>`;
+  const bf = rel.BELLMAN_FORD || {};
+  const s = bf.sem_ciclo_negativo, c = bf.grafo_completo;
+  return html`
+    <div className="grade-res">
+      <div className="bloco largo">
+        <h4>BFS nas 3 fontes</h4>
+        <p className="sub">Saída da função bfs() do grupo · tempo médio de 5 execuções</p>
+        <div className="rolar-x"><table className="tab">
+          <thead><tr><th>fonte</th><th className="num">vértices visitados</th><th className="num">camadas</th>
+            <th>vértices por camada (nível 0 → último)</th><th className="num">tempo médio</th></tr></thead>
+          <tbody>${rel.BFS.map(b => html`<tr key=${b.fonte}>
+            <td><b>${b.fonte}</b></td><td className="num">${fmtInt(b.vertices_visitados)}</td><td className="num">${b.n_camadas}</td>
+            <td className="camadas">${b.camadas.map(fmtInt).join(" · ")}</td><td className="num">${fmtTempo(b.tempo_medio_s)}</td></tr>`)}</tbody>
+        </table></div>
+      </div>
+      <div className="bloco largo">
+        <h4>DFS nas 3 fontes</h4>
+        <p className="sub">Saída da função dfs_completa() do grupo · classificação dos arcos · tempo médio de 5 execuções</p>
+        <div className="rolar-x"><table className="tab">
+          <thead>
+            <tr><th></th><th></th><th></th><th className="grupo-col" colSpan="4">classificação dos arcos</th><th></th></tr>
+            <tr><th>fonte</th><th className="num">vértices visitados</th><th>ciclo</th><th className="num">árvore</th><th className="num">retorno</th>
+              <th className="num">avanço</th><th className="num">cruzamento</th><th className="num">tempo médio</th></tr></thead>
+          <tbody>${rel.DFS.map(d => html`<tr key=${d.fonte}>
+            <td><b>${d.fonte}</b></td><td className="num">${fmtInt(d.vertices_visitados)}</td>
+            <td><span className="etiqueta">${d.tem_ciclo ? "sim" : "não"}</span></td>
+            <td className="num">${fmtInt(d.classificacao_arcos.arvore)}</td><td className="num">${fmtInt(d.classificacao_arcos.retorno)}</td>
+            <td className="num">${fmtInt(d.classificacao_arcos.avanco)}</td><td className="num">${fmtInt(d.classificacao_arcos.cruzamento)}</td>
+            <td className="num">${fmtTempo(d.tempo_medio_s)}</td></tr>`)}</tbody>
+        </table></div>
+      </div>
+      ${s && html`
+        <div className="bloco">
+          <h4>Bellman-Ford · caso 1: recorte sem ciclo negativo</h4>
+          <p className="sub">Subgrafo com um único arco de peso negativo do dataset</p>
+          <div className="infos">
+            <div className="info largo"><span>arco usado</span><span>${s.aresta_original[0]} → ${s.aresta_original[1]} (peso ${fmtPeso(s.aresta_original[2])})</span></div>
+            <div className="info"><span>fonte</span><span>${s.fonte}</span></div>
+            <div className="info"><span>vértices / arcos</span><span>${s.vertices} / ${s.arestas}</span></div>
+            <div className="info"><span>ciclo negativo</span><span>${s.tem_ciclo_negativo ? "sim" : "não"}</span></div>
+            <div className="info"><span>tempo médio</span><span>${fmtTempo(s.tempo_medio_s)}</span></div>
+            ${s.distancias && html`<div className="info largo"><span>distâncias</span>
+              <span>${Object.entries(s.distancias).map(([v, d]) => v + ": " + (d === null ? "∞" : fmtPeso(d).replace("+", ""))).join(" · ")}</span></div>`}
+          </div>
+        </div>`}
+      ${c && html`
+        <div className="bloco">
+          <h4>Bellman-Ford · caso 2: grafo completo</h4>
+          <p className="sub">Grafo inteiro do dataset, a partir da fonte ${c.fonte}</p>
+          <div className="infos">
+            <div className="info"><span>fonte</span><span>${c.fonte}</span></div>
+            <div className="info"><span>vértices / arcos</span><span>${fmtInt(c.vertices)} / ${fmtInt(c.arestas)}</span></div>
+            <div className="info"><span>ciclo negativo</span><span>${c.tem_ciclo_negativo ? "sim" : "não"}</span></div>
+            <div className="info"><span>tempo médio</span><span>${fmtTempo(c.tempo_medio_s)}</span></div>
+            ${c.ciclo && html`
+              <div className="info largo"><span>ciclo</span><span>${c.ciclo.join(" → ")}</span></div>
+              <div className="info"><span>pesos do ciclo</span><span>${(c.pesos_ciclo || []).map(fmtPeso).join(", ")}</span></div>
+              <div className="info"><span>custo do ciclo</span><span style=${{color: "var(--erro)"}}>${fmtPeso(c.custo_ciclo)}</span></div>`}
+          </div>
+          ${c.ciclo && html`<div className="linha-botoes"><button className="botao perigo" onClick=${verCiclo}>Mostrar ciclo negativo no grafo</button></div>`}
+        </div>`}
+    </div>`;
+}
+
+// ------------------------------------------------------------------ parte 2: AVD (figuras exportadas do notebook)
+function AbaAVD(){
+  const {dados, erro} = useDados("api/parte2/figuras");
+  const [lupa, setLupa] = useState(null);
+  const [largas, setLargas] = useState({});      // figuras muito largas (ex.: um painel por ano) ocupam a linha toda
+  useEffect(() => {
+    if (!lupa) return;
+    const f = e => { if (e.key === "Escape") setLupa(null); };
+    window.addEventListener("keydown", f);
+    return () => window.removeEventListener("keydown", f);
+  }, [lupa]);
+  if (erro) return html`<div className="bloco"><div className="aviso erro" style=${{marginTop: 0}}>${erro}</div></div>`;
+  if (!dados) return html`<div className="bloco">Carregando…</div>`;
+  const faltando = dados.filter(f => !f.existe).length;
+  return html`
+    <div style=${{display: "flex", flexDirection: "column", gap: ".9rem"}}>
+      <p className="avd-intro">${"Gráficos escolhidos pelo grupo, exportados do notebook "}
+        <span className="mono">docs/Analise_Exploratoria_e_Explanatoria_do_Dataset_Bitcoin_Alpha_Trust_Weight_Signed_Network.ipynb</span>
+        ${" para "}<span className="mono">out/parte2/</span>. Clique num gráfico para ampliar.</p>
+      ${faltando > 0 && html`<div className="aviso alerta" style=${{marginTop: 0}}><b>${faltando} figura(s) ainda não exportada(s)</b>
+        Rode <code>python -m src.parte2.exportar_figuras</code>.</div>`}
+      <div className="grade-avd">
+        ${dados.map(f => html`
+          <figure key=${f.arquivo} className=${"cartao figura" + (largas[f.arquivo] ? " larga" : "")}>
+            <figcaption><b>${f.titulo}</b><small className="mono">${f.arquivo}</small></figcaption>
+            ${f.existe
+              ? html`<div className="papel" onClick=${() => setLupa(f)} role="button" tabIndex="0" aria-label=${"Ampliar: " + f.titulo}
+                          onKeyDown=${e => e.key === "Enter" && setLupa(f)}>
+                       <img src=${"parte2/figuras/" + f.arquivo} alt=${f.titulo} loading="lazy"
+                            onLoad=${e => { const i = e.target; if (i.naturalWidth > 2.6 * i.naturalHeight) setLargas(m => ({...m, [f.arquivo]: true})); }}/></div>`
+              : html`<div className="aviso neutro">arquivo não encontrado em out/parte2/</div>`}
+            <div className="nota"><span>Nota analítica</span><p>a ser escrita pelo grupo</p></div>
+          </figure>`)}
+      </div>
+      ${lupa && html`<div className="lupa" onClick=${() => setLupa(null)} role="dialog" aria-label=${lupa.titulo}>
+        <img src=${"parte2/figuras/" + lupa.arquivo} alt=${lupa.titulo}/></div>`}
+    </div>`;
+}
+
+// ------------------------------------------------------------------ parte 2: pagina
+const ABAS_P2 = [
+  {id: "grafo", nome: "Grafo e algoritmos"},
+  {id: "resultados", nome: "Resultados (parte2_report.json)"},
+  {id: "avd", nome: "Análise de dados (AVD)"},
+];
+
+function Parte2({tema, visivel, aba, setAba}){
+  const resumo = useDados("api/parte2/resumo");
+  const rel = useDados("api/parte2/relatorio");
+  const grafo = useDados("api/parte2/grafo").dados;
+  const [vertices, setVertices] = useState(null);
+  const [destaque, setDestaque] = useState(null);
+  const [selecionado, setSelecionado] = useState(null);
+
+  const graus = useMemo(() => {
+    const m = new Map();
+    if (grafo) for (const [id, gin, gout] of grafo.nos) m.set(id, {entrada: gin, saida: gout});
+    return m;
+  }, [grafo]);
+  const grauDe = v => graus.get(Number(v)) || null;
+  const verCiclo = () => {
+    setDestaque(destaqueDoCiclo(rel.dados.BELLMAN_FORD.grafo_completo.ciclo));
+    setAba("grafo");
+  };
+  const r = resumo.dados;
+  return html`
+    <main className="p2" style=${{display: visivel ? "flex" : "none"}}>
+      <section className="cartao resumo" aria-label="Resumo do dataset">
+        <div>
+          <h2>Bitcoin Alpha · rede de confiança</h2>
+          <p className="sub">Vértice = usuário · arco u → v = avaliação que u deu a v · peso = nota da avaliação</p>
+          <div className="tiles">
+            <div className="tile"><span>|V| vértices</span><b>${r ? fmtInt(r.vertices) : "…"}</b></div>
+            <div className="tile"><span>|E| arcos</span><b>${r ? fmtInt(r.arestas) : "…"}</b></div>
+            <div className="tile"><span>tipo</span><b style=${{fontSize: ".95rem"}}>dirigido</b><small>e ponderado</small></div>
+            <div className="tile"><span>peso = nota</span><b style=${{fontSize: ".95rem"}}>${r ? fmtPeso(r.peso_min) + " a " + fmtPeso(r.peso_max) : "−10 a +10"}</b></div>
+          </div>
+          ${resumo.erro && html`<div className="aviso erro"><b>Erro ao carregar o resumo</b>${resumo.erro}</div>`}
+        </div>
+        <blockquote className="pergunta">
+          <span className="rot">Pergunta de pesquisa</span>
+          <p>${r ? (r.pergunta || "(seção \"Pergunta de Pesquisa\" não encontrada no notebook)") : "…"}</p>
+          <cite>notebook do grupo · seção 7, “Pergunta de Pesquisa”</cite>
+        </blockquote>
+      </section>
+
+      <div className="abas" role="tablist" aria-label="Seções da Parte 2">
+        ${ABAS_P2.map(a => html`<button key=${a.id} role="tab" aria-selected=${aba === a.id} onClick=${() => setAba(a.id)}>${a.nome}</button>`)}
+      </div>
+
+      <div style=${{display: aba === "grafo" ? "block" : "none"}}>
+        <div className="area-grafo">
+          <${DesenhoGrafo} tema=${tema} visivel=${visivel && aba === "grafo"} destaque=${destaque} selecionado=${selecionado}
+            aoClicarVertice=${setSelecionado} avisarPronto=${setVertices}/>
+          <${PainelAlgoritmos} vertices=${vertices} relatorio=${rel.erro ? null : rel.dados || undefined}
+            setDestaque=${setDestaque} selecionado=${selecionado} setSelecionado=${setSelecionado} grauDe=${grauDe}/>
+        </div>
+        ${grafo && html`<datalist id="lista-vertices">${grafo.nos.map(n => html`<option key=${n[0]} value=${n[0]}/>`)}</datalist>`}
+      </div>
+      ${aba === "resultados" && html`<${ResultadosSalvos} rel=${rel.dados} erro=${rel.erro} verCiclo=${verCiclo}/>`}
+      ${aba === "avd" && html`<${AbaAVD}/>`}
+    </main>`;
+}
+
+// ------------------------------------------------------------------ raiz: navegacao pelo endereco (#parte1, #parte2, #parte2/avd)
+function lerEndereco(){
+  const [tela, aba] = (location.hash || "").replace(/^#/, "").split("/");
+  return {tela: tela === "parte1" || tela === "parte2" ? tela : "", aba: ABAS_P2.some(a => a.id === aba) ? aba : "grafo"};
+}
+
+function Raiz(){
+  const [rota, setRota] = useState(lerEndereco);
+  const [tema, setTema] = useState(lerTema);
+  // depois de abertas, as duas partes ficam montadas (so escondidas): trocar de parte nao perde o estado
+  const [p1Aberta, setP1Aberta] = useState(rota.tela === "parte1");
+  const [p2Aberta, setP2Aberta] = useState(rota.tela === "parte2");
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", tema);
+    try { localStorage.setItem("tema", tema); } catch (e) {}
+  }, [tema]);
+  useEffect(() => {
+    const f = () => setRota(lerEndereco());
+    window.addEventListener("hashchange", f);
+    return () => window.removeEventListener("hashchange", f);
+  }, []);
+  useEffect(() => {
+    if (rota.tela === "parte1") setP1Aberta(true);
+    if (rota.tela === "parte2") setP2Aberta(true);
+    document.title = rota.tela === "parte1" ? "Parte 1 — Labirinto · Teoria dos Grafos + AVD"
+                   : rota.tela === "parte2" ? "Parte 2 — Bitcoin Alpha · Teoria dos Grafos + AVD" : "Teoria dos Grafos + AVD";
+  }, [rota.tela]);
+  const ir = t => {
+    if (t){ location.hash = t; return; }
+    history.pushState(null, "", location.pathname);     // volta para a home sem "#" no endereco
+    setRota(lerEndereco());
+  };
+  const setAba = a => { location.hash = "parte2" + (a === "grafo" ? "" : "/" + a); };
+  return html`
+    <${Topo} tela=${rota.tela} ir=${ir} tema=${tema} setTema=${setTema}/>
+    ${rota.tela === "" && html`<${Home} ir=${ir}/>`}
+    ${p1Aberta && html`<${Parte1} tema=${tema} visivel=${rota.tela === "parte1"}/>`}
+    ${p2Aberta && html`<${Parte2} tema=${tema} visivel=${rota.tela === "parte2"} aba=${rota.aba} setAba=${setAba}/>`}`;
+}
+
+ReactDOM.createRoot(document.getElementById("app")).render(html`<${Raiz}/>`);
+})();
+</script>
+</body>
+</html>

@@ -74,6 +74,22 @@ são recusados com a mensagem de validação. Os mapas enviados ficam em
 `out/parte1/mapas_enviados/`. Abrindo o `labirinto_interativo.html` direto (dois cliques),
 a página funciona normalmente, mas sem o botão de upload.
 
+<!-- [IA] Claude Code – front/UX (secao do front unico) -->
+## Front do projeto (Parte 1 + Parte 2)
+
+```bash
+python -m src.parte2.exportar_figuras   # copia os gráficos de AVD do notebook para out/parte2/
+python -m src.servidor                  # home em http://127.0.0.1:8765 (#parte1 / #parte2)
+```
+
+- **Home:** switch Parte 1 / Parte 2; a escolha fica no endereço (`#parte1`, `#parte2`, `#parte2/avd`).
+- **Parte 1:** a mesma página do labirinto (`src/web/labirinto.html`), embutida no front.
+- **Parte 2:** resumo do dataset e pergunta de pesquisa (lida do notebook), desenho do grafo
+  inteiro (sigma.js, WebGL), painel para rodar BFS/DFS/Dijkstra/Bellman-Ford entre dois vértices,
+  destaque do ciclo negativo, resultados do `out/parte2/parte2_report.json` e aba de AVD.
+  Os algoritmos rodam no Python (`POST /api/parte2/rodar` chama `algorithms.py` do grupo);
+  a página só desenha. As bibliotecas JS ficam em `src/web/vendor/` (funciona sem internet).
+
 ## Testes
 
 ```bash
@@ -107,6 +123,9 @@ projeto-grafos/
 │  │  ├─ estados.py          # grafo de posições e grafo de estados
 │  │  ├─ graph.py            # lista de adjacência DIRIGIDA
 │  │  └─ algorithms.py       # BFS, DFS, Dijkstra, Bellman-Ford (próprios)
+│  ├─ parte2/                # construção do grafo do dataset; painel e figuras do front
+│  ├─ web/                   # index.html (front único), labirinto.html e vendor/ (bibliotecas JS)
+│  ├─ servidor.py            # servidor local do front
 │  └─ viz.py                 # visualizações / UX
 └─ tests/                    # pytest
 ```
