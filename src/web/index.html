@@ -322,6 +322,53 @@
   /* [IA] Claude Code – front/UX (celular: a tabela rola dentro do cartao, a pagina nao rola de lado) */
   @media (max-width:1100px){.grade-res{grid-template-columns:minmax(0,1fr)}}
   .grade-res>*{min-width:0}
+  /* [IA] ChatGPT - detalhes dos resultados da Parte 2 */
+
+  .detalhes-execucao {
+    margin-top: .8rem;
+    border: 1px solid var(--linha);
+    border-radius: 10px;
+    background: var(--bg2);
+    padding: .7rem .9rem;
+  }
+
+  .detalhes-execucao summary {
+    cursor: pointer;
+    font-weight: 600;
+    font-size: .85rem;
+    color: var(--txt);
+  }
+
+  .detalhes-execucao[open] summary {
+    margin-bottom: .8rem;
+  }
+
+  .lista-vertices {
+    max-height: 180px;
+    overflow-y: auto;
+    padding: .8rem;
+    background: var(--card);
+    border: 1px solid var(--linha);
+    border-radius: 8px;
+    font-family: var(--mono);
+    font-size: .78rem;
+    line-height: 1.8;
+    overflow-wrap: anywhere;
+  }
+
+  .metricas-nota {
+    color: var(--txt2);
+    font-size: .8rem;
+    line-height: 1.6;
+    margin: .7rem 0;
+  }
+
+  .secao-resultados {
+    display: flex;
+    flex-direction: column;
+    gap: .9rem;
+    min-width: 0;
+  }
   .bloco h4{margin:0 0 .2rem;font-size:1rem}
   .bloco .sub{margin:0 0 .6rem;font-size:.8rem;color:var(--txt3)}
   .rolar-x{overflow-x:auto}
@@ -403,6 +450,28 @@ const fmtInt = n => n === null || n === undefined ? "—" : Number(n).toLocaleSt
 const fmtTempo = s => s === null || s === undefined ? "—"
   : s < 1 ? (s * 1000).toLocaleString("pt-BR", {maximumFractionDigits: s < 0.01 ? 3 : 1}) + " ms"
   : s.toLocaleString("pt-BR", {maximumFractionDigits: 2}) + " s";
+// [IA] ChatGPT - formatacao da memoria de pico
+const fmtMemoria = bytes => {
+  if (bytes === null || bytes === undefined) {
+    return "—";
+  }
+
+  if (bytes < 1024) {
+    return fmtInt(bytes) + " B";
+  }
+
+  if (bytes < 1024 * 1024) {
+    return (bytes / 1024).toLocaleString(
+      "pt-BR",
+      {maximumFractionDigits: 2}
+    ) + " KiB";
+  }
+
+  return (bytes / (1024 * 1024)).toLocaleString(
+    "pt-BR",
+    {maximumFractionDigits: 2}
+  ) + " MiB";
+};
 const fmtPeso = p => (p > 0 ? "+" : p < 0 ? "−" : "") + Math.abs(p);
 const lerTema = () => {
   try { const t = localStorage.getItem("tema"); if (t === "light" || t === "dark") return t; } catch (e) {}
@@ -1253,80 +1322,738 @@ function PainelAlgoritmos({
 }
 
 // ------------------------------------------------------------------ parte 2: resultados que ja estao no parte2_report.json
-function ResultadosSalvos({rel, erro, verCiclo, rodando}){
-  if (erro) return html`<div className="bloco"><div className="aviso erro" style=${{marginTop: 0}}><b>Relatório indisponível</b>${erro}</div></div>`;
-  if (!rel) return html`<div className="bloco">Carregando out/parte2/parte2_report.json…</div>`;
-  const bf = rel.BELLMAN_FORD || {};
-  const s = bf.sem_ciclo_negativo, c = bf.grafo_completo;
+// [IA] ChatGPT - exibicao dos resultados completos das buscas
+function DetalhesBusca({item, bfs}){
   return html`
-    <div className="grade-res">
-      <div className="bloco largo">
-        <h4>BFS nas 3 fontes</h4>
-        <p className="sub">Saída da função bfs() do grupo · tempo médio de 5 execuções</p>
-        <div className="rolar-x"><table className="tab">
-          <thead><tr><th>fonte</th><th className="num">vértices visitados</th><th className="num">camadas</th>
-            <th>vértices por camada (nível 0 → último)</th><th className="num">tempo médio</th></tr></thead>
-          <tbody>${rel.BFS.map(b => html`<tr key=${b.fonte}>
-            <td><b>${b.fonte}</b></td><td className="num">${fmtInt(b.vertices_visitados)}</td><td className="num">${b.n_camadas}</td>
-            <td className="camadas">${b.camadas.map(fmtInt).join(" · ")}</td><td className="num">${fmtTempo(b.tempo_medio_s)}</td></tr>`)}</tbody>
-        </table></div>
+    <details className="detalhes-execucao">
+      <summary>
+        Fonte ${item.fonte} · detalhes da execução
+      </summary>
+
+      <p className="sub">
+        Ordem de visitação
+        (${fmtInt(item.ordem.length)} vértices)
+      </p>
+
+      <div className="lista-vertices">
+        ${item.ordem.join(" → ")}
       </div>
-      <div className="bloco largo">
-        <h4>DFS nas 3 fontes</h4>
-        <p className="sub">Saída da função dfs_completa() do grupo · classificação dos arcos · tempo médio de 5 execuções</p>
-        <div className="rolar-x"><table className="tab">
+
+      ${bfs && html`
+        <h4 style=${{marginTop: "1rem"}}>
+          Vértices por camada
+        </h4>
+
+        ${item.vertices_por_camada.map(c => html`
+          <details
+            key=${c.nivel}
+            className="detalhes-execucao">
+
+            <summary>
+              Camada ${c.nivel}
+              · ${fmtInt(c.vertices.length)} vértices
+            </summary>
+
+            <div className="lista-vertices">
+              ${c.vertices.join(", ")}
+            </div>
+
+          </details>
+        `)}
+      `}
+
+      <p className="metricas-nota">
+        Tempos individuais das cinco execuções:
+        ${item.tempos_s.map(fmtTempo).join(" · ")}
+      </p>
+    </details>
+  `;
+}
+// [IA] ChatGPT - tabela dos benchmarks existentes
+function TabelaDesempenho({rel}){
+  const tarefas = [];
+
+  for (const b of rel.BFS || []) {
+    tarefas.push({
+      nome: "BFS",
+      caso: "Fonte " + b.fonte,
+      status: "OK",
+      dados: b
+    });
+  }
+
+  for (const d of rel.DFS || []) {
+    tarefas.push({
+      nome: "DFS",
+      caso: "Fonte " + d.fonte,
+      status: "OK",
+      dados: d
+    });
+  }
+
+  if (rel.DIJKSTRA) {
+    tarefas.push({
+      nome: "Dijkstra",
+      caso: "Recusa por peso negativo",
+      status: rel.DIJKSTRA.status,
+      dados: rel.DIJKSTRA
+    });
+  }
+
+  const bf = rel.BELLMAN_FORD || {};
+
+  for (const [nome, caso] of Object.entries(bf)) {
+    tarefas.push({
+      nome: "Bellman-Ford",
+      caso: nome === "sem_ciclo_negativo"
+        ? "Recorte sem ciclo negativo"
+        : "Grafo completo",
+      status: caso.tem_ciclo_negativo
+        ? "CICLO_NEGATIVO"
+        : "OK",
+      dados: caso
+    });
+  }
+
+  return html`
+    <div className="bloco largo">
+      <h4>Comparação de desempenho</h4>
+
+      <p className="sub">
+        Resultados das tarefas realizadas pelo grupo.
+      </p>
+
+      <div className="rolar-x">
+        <table className="tab">
           <thead>
-            <tr><th></th><th></th><th></th><th className="grupo-col" colSpan="4">classificação dos arcos</th><th></th></tr>
-            <tr><th>fonte</th><th className="num">vértices visitados</th><th>ciclo</th><th className="num">árvore</th><th className="num">retorno</th>
-              <th className="num">avanço</th><th className="num">cruzamento</th><th className="num">tempo médio</th></tr></thead>
-          <tbody>${rel.DFS.map(d => html`<tr key=${d.fonte}>
-            <td><b>${d.fonte}</b></td><td className="num">${fmtInt(d.vertices_visitados)}</td>
-            <td><span className="etiqueta">${d.tem_ciclo ? "sim" : "não"}</span></td>
-            <td className="num">${fmtInt(d.classificacao_arcos.arvore)}</td><td className="num">${fmtInt(d.classificacao_arcos.retorno)}</td>
-            <td className="num">${fmtInt(d.classificacao_arcos.avanco)}</td><td className="num">${fmtInt(d.classificacao_arcos.cruzamento)}</td>
-            <td className="num">${fmtTempo(d.tempo_medio_s)}</td></tr>`)}</tbody>
-        </table></div>
+            <tr>
+              <th>Algoritmo</th>
+              <th>Experimento</th>
+              <th>Status</th>
+              <th className="num">Execuções</th>
+              <th className="num">Tempo médio</th>
+              <th className="num">Memória de pico</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            ${tarefas.map((t, i) => html`
+              <tr key=${i}>
+                <td><b>${t.nome}</b></td>
+                <td>${t.caso}</td>
+
+                <td>
+                  <span className="etiqueta">
+                    ${t.status}
+                  </span>
+                </td>
+
+                <td className="num">
+                  ${t.dados.tempos_s.length}
+                </td>
+
+                <td className="num">
+                  ${fmtTempo(t.dados.tempo_medio_s)}
+                </td>
+
+                <td className="num">
+                  ${fmtMemoria(t.dados.memoria_pico_bytes)}
+                </td>
+              </tr>
+            `)}
+          </tbody>
+        </table>
       </div>
-      ${s && html`
-        <div className="bloco">
-          <h4>Bellman-Ford · caso 1: recorte sem ciclo negativo</h4>
-          <p className="sub">Subgrafo com um único arco de peso negativo do dataset</p>
-          <div className="infos">
-            <div className="info largo"><span>arco usado</span><span>${s.aresta_original[0]} → ${s.aresta_original[1]} (peso ${fmtPeso(s.aresta_original[2])})</span></div>
-            <div className="info"><span>fonte</span><span>${s.fonte}</span></div>
-            <div className="info"><span>vértices / arcos</span><span>${s.vertices} / ${s.arestas}</span></div>
-            <div className="info"><span>ciclo negativo</span><span>${s.tem_ciclo_negativo ? "sim" : "não"}</span></div>
-            <div className="info"><span>tempo médio</span><span>${fmtTempo(s.tempo_medio_s)}</span></div>
-            ${s.distancias && html`<div className="info largo"><span>distâncias</span>
-              <span>${Object.entries(s.distancias).map(([v, d]) => v + ": " + (d === null ? "∞" : fmtPeso(d).replace("+", ""))).join(" · ")}</span></div>`}
+
+      <p className="metricas-nota">
+        Os tempos correspondem à média de cinco
+        execuções. A memória corresponde ao pico
+        registrado separadamente pelo tracemalloc.
+        Para Dijkstra, as métricas representam a recusa,
+        e não o cálculo de um caminho mínimo.
+      </p>
+    </div>
+  `;
+}
+// [IA] ChatGPT - exibicao dos experimentos de escalabilidade
+function TabelaEscalabilidade({dados}){
+  return html`
+    <div className="bloco largo">
+      <h4>Escalabilidade</h4>
+
+      <p className="sub">
+        Execução dos quatro algoritmos em recortes
+        de 10%, 50% e 100% dos vértices.
+      </p>
+
+      ${!dados.length && html`
+        <div className="aviso neutro">
+          Resultados de escalabilidade não encontrados.
+        </div>
+      `}
+
+      ${dados.map(r => html`
+        <div
+          key=${r.percentual}
+          style=${{marginTop: "1rem"}}>
+
+          <h4>Grafo de ${r.percentual}%</h4>
+
+          <p className="sub">
+            ${fmtInt(r.vertices)} vértices ·
+            ${fmtInt(r.arestas)} arcos ·
+            fonte ${r.fonte}
+          </p>
+
+          <div className="rolar-x">
+            <table className="tab">
+              <thead>
+                <tr>
+                  <th>Algoritmo</th>
+                  <th>Status</th>
+                  <th className="num">Tempo médio</th>
+                  <th className="num">Memória de pico</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                ${Object.entries(r.algoritmos).map(
+                  ([nome, a]) => html`
+                    <tr key=${nome}>
+                      <td>
+                        <b>
+                          ${INFO_ALG[nome]?.nome || nome}
+                        </b>
+                      </td>
+
+                      <td>
+                        <span className="etiqueta">
+                          ${a.status}
+                        </span>
+                      </td>
+
+                      <td className="num">
+                        ${fmtTempo(a.tempo_medio_s)}
+                      </td>
+
+                      <td className="num">
+                        ${fmtMemoria(a.memoria_pico_bytes)}
+                      </td>
+                    </tr>
+                  `
+                )}
+              </tbody>
+            </table>
           </div>
-        </div>`}
-      ${c && html`
+        </div>
+      `)}
+
+      <p className="metricas-nota">
+        Os recortes correspondem à estratégia de
+        amostragem utilizada nos benchmarks do grupo.
+        A recusa de Dijkstra é registrada separadamente
+        das execuções que calculam caminhos.
+      </p>
+    </div>
+  `;
+}
+// [IA] ChatGPT - galeria das figuras de desempenho existentes
+function FigurasAlgoritmos(){
+  const {dados, erro} = useDados(
+    "api/parte2/figuras-algoritmos"
+  );
+
+  const [lupa, setLupa] = useState(null);
+
+  useEffect(() => {
+    if (!lupa) return;
+
+    const fechar = e => {
+      if (e.key === "Escape") {
+        setLupa(null);
+      }
+    };
+
+    window.addEventListener("keydown", fechar);
+
+    return () => {
+      window.removeEventListener("keydown", fechar);
+    };
+  }, [lupa]);
+
+  return html`
+    <section className="secao-avd">
+      <h3>Visualizações dos experimentos</h3>
+
+      <p className="avd-intro">
+        Gráficos produzidos pelo grupo a partir dos
+        resultados dos algoritmos.
+        Clique em uma figura para ampliar.
+      </p>
+
+      ${erro && html`
+        <div className="aviso erro">
+          ${erro}
+        </div>
+      `}
+
+      ${!dados && !erro && html`
         <div className="bloco">
-          <h4>Bellman-Ford · caso 2: grafo completo</h4>
-          <p className="sub">Grafo inteiro do dataset, a partir da fonte ${c.fonte}</p>
-          <div className="infos">
-            <div className="info"><span>fonte</span><span>${c.fonte}</span></div>
-            <div className="info"><span>vértices / arcos</span><span>${fmtInt(c.vertices)} / ${fmtInt(c.arestas)}</span></div>
-            <div className="info"><span>ciclo negativo</span><span>${c.tem_ciclo_negativo ? "sim" : "não"}</span></div>
-            <div className="info"><span>tempo médio</span><span>${fmtTempo(c.tempo_medio_s)}</span></div>
-            ${c.ciclo && html`
-              <div className="info largo"><span>ciclo</span><span>${c.ciclo.join(" → ")}</span></div>
-              <div className="info"><span>pesos do ciclo</span><span>${(c.pesos_ciclo || []).map(fmtPeso).join(", ")}</span></div>
-              <div className="info"><span>custo do ciclo</span><span style=${{color: "var(--erro)"}}>${fmtPeso(c.custo_ciclo)}</span></div>`}
+          Carregando visualizações…
+        </div>
+      `}
+
+      ${dados && html`
+        <div className="grade-avd">
+          ${dados.map(f => html`
+            <figure
+              key=${f.arquivo}
+              className="cartao figura">
+
+              <figcaption>
+                <b>${f.titulo}</b>
+              </figcaption>
+
+              ${f.existe ? html`
+                <div
+                  className="papel"
+                  role="button"
+                  tabIndex="0"
+                  aria-label=${"Ampliar: " + f.titulo}
+                  onClick=${() => setLupa(f)}
+                  onKeyDown=${e => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setLupa(f);
+                    }
+                  }}>
+
+                  <img
+                    src=${"parte2/figuras/" + f.arquivo}
+                    alt=${f.titulo}
+                    loading="lazy"
+                  />
+                </div>
+              ` : html`
+                <div className="aviso neutro">
+                  Figura não encontrada em out/parte2/.
+                </div>
+              `}
+            </figure>
+          `)}
+        </div>
+      `}
+
+      ${lupa && html`
+        <div
+          className="lupa"
+          role="dialog"
+          aria-label=${lupa.titulo}
+          onClick=${() => setLupa(null)}>
+
+          <img
+            src=${"parte2/figuras/" + lupa.arquivo}
+            alt=${lupa.titulo}
+          />
+        </div>
+      `}
+    </section>
+  `;
+}
+// [IA] ChatGPT - organizacao dos resultados existentes no front
+function ResultadosSalvos({rel, erro, verCiclo, rodando}){
+  if (erro) {
+    return html`
+      <div className="bloco">
+        <div className="aviso erro">
+          <b>Relatório indisponível</b>
+          ${erro}
+        </div>
+      </div>
+    `;
+  }
+
+  if (!rel) {
+    return html`
+      <div className="bloco">
+        Carregando resultados…
+      </div>
+    `;
+  }
+
+  const bf = rel.BELLMAN_FORD || {};
+  const s = bf.sem_ciclo_negativo;
+  const c = bf.grafo_completo;
+  const dj = rel.DIJKSTRA;
+
+  return html`
+    <div className="secao-resultados">
+
+      <section className="cartao" style=${{padding: "1.2rem"}}>
+        <h2 style=${{marginTop: 0}}>
+          Resultados e desempenho
+        </h2>
+
+        <p className="sub">
+          Experimentos realizados com os algoritmos
+          BFS, DFS, Dijkstra e Bellman-Ford no
+          dataset Bitcoin Alpha.
+        </p>
+
+        <p className="metricas-nota">
+          Resultados carregados de
+          out/parte2/parte2_report.json.
+        </p>
+      </section>
+
+      <div className="grade-res">
+
+        <!-- BFS -->
+        <div className="bloco largo">
+          <h4>Busca em largura — BFS</h4>
+
+          <p className="sub">
+            Execução a partir de três fontes distintas.
+          </p>
+
+          <div className="rolar-x">
+            <table className="tab">
+              <thead>
+                <tr>
+                  <th>Fonte</th>
+                  <th className="num">Visitados</th>
+                  <th className="num">Camadas</th>
+                  <th>Vértices por camada</th>
+                  <th className="num">Tempo médio</th>
+                  <th className="num">Memória</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                ${rel.BFS.map(b => html`
+                  <tr key=${b.fonte}>
+                    <td><b>${b.fonte}</b></td>
+
+                    <td className="num">
+                      ${fmtInt(b.vertices_visitados)}
+                    </td>
+
+                    <td className="num">
+                      ${b.n_camadas}
+                    </td>
+
+                    <td className="camadas">
+                      ${b.camadas.map(fmtInt).join(" · ")}
+                    </td>
+
+                    <td className="num">
+                      ${fmtTempo(b.tempo_medio_s)}
+                    </td>
+
+                    <td className="num">
+                      ${fmtMemoria(b.memoria_pico_bytes)}
+                    </td>
+                  </tr>
+                `)}
+              </tbody>
+            </table>
           </div>
-          ${c.ciclo && html`
-            <div className="linha-botoes">
-              <button
-                className="botao perigo"
-                disabled=${rodando}
-                onClick=${verCiclo}>
-                Mostrar ciclo negativo no grafo
-              </button>
+
+          ${rel.BFS.map(b => html`
+            <${DetalhesBusca}
+              key=${b.fonte}
+              item=${b}
+              bfs=${true}
+            />
+          `)}
+        </div>
+
+        <!-- DFS -->
+        <div className="bloco largo">
+          <h4>Busca em profundidade — DFS</h4>
+
+          <p className="sub">
+            Execução a partir de três fontes distintas,
+            com classificação dos arcos e detecção de ciclos.
+          </p>
+
+          <div className="rolar-x">
+            <table className="tab">
+              <thead>
+                <tr>
+                  <th>Fonte</th>
+                  <th className="num">Visitados</th>
+                  <th>Ciclo</th>
+                  <th className="num">Árvore</th>
+                  <th className="num">Retorno</th>
+                  <th className="num">Avanço</th>
+                  <th className="num">Cruzamento</th>
+                  <th className="num">Tempo médio</th>
+                  <th className="num">Memória</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                ${rel.DFS.map(d => html`
+                  <tr key=${d.fonte}>
+                    <td><b>${d.fonte}</b></td>
+
+                    <td className="num">
+                      ${fmtInt(d.vertices_visitados)}
+                    </td>
+
+                    <td>
+                      <span className="etiqueta">
+                        ${d.tem_ciclo ? "Sim" : "Não"}
+                      </span>
+                    </td>
+
+                    <td className="num">
+                      ${fmtInt(d.classificacao_arcos.arvore)}
+                    </td>
+
+                    <td className="num">
+                      ${fmtInt(d.classificacao_arcos.retorno)}
+                    </td>
+
+                    <td className="num">
+                      ${fmtInt(d.classificacao_arcos.avanco)}
+                    </td>
+
+                    <td className="num">
+                      ${fmtInt(d.classificacao_arcos.cruzamento)}
+                    </td>
+
+                    <td className="num">
+                      ${fmtTempo(d.tempo_medio_s)}
+                    </td>
+
+                    <td className="num">
+                      ${fmtMemoria(d.memoria_pico_bytes)}
+                    </td>
+                  </tr>
+                `)}
+              </tbody>
+            </table>
+          </div>
+
+          ${rel.DFS.map(d => html`
+            <${DetalhesBusca}
+              key=${d.fonte}
+              item=${d}
+              bfs=${false}
+            />
+          `)}
+        </div>
+
+        <!-- DIJKSTRA -->
+        <div className="bloco largo">
+          <h4>
+            Dijkstra
+            <span className="etiqueta">
+              ${dj?.status || "Indisponível"}
+            </span>
+          </h4>
+
+          <p className="sub">
+            O grafo original contém pesos negativos,
+            o que impede a execução do algoritmo de Dijkstra.
+          </p>
+
+          ${dj ? html`
+            <div className="aviso neutro">
+              <b>Mensagem retornada pelo algoritmo</b>
+              <code>${dj.motivo}</code>
+            </div>
+
+            <div className="infos">
+              <div className="info">
+                <span>Fonte</span>
+                <span>${dj.fonte}</span>
+              </div>
+
+              <div className="info">
+                <span>Tempo médio da recusa</span>
+                <span>${fmtTempo(dj.tempo_medio_s)}</span>
+              </div>
+
+              <div className="info">
+                <span>Memória de pico</span>
+                <span>${fmtMemoria(dj.memoria_pico_bytes)}</span>
+              </div>
+
+              <div className="info">
+                <span>Execuções</span>
+                <span>${dj.tempos_s.length}</span>
+              </div>
+            </div>
+          ` : html`
+            <div className="aviso neutro">
+              Resultado não encontrado.
             </div>
           `}
-        </div>`}
-    </div>`;
+        </div>
+
+        <!-- BELLMAN-FORD SEM CICLO NEGATIVO -->
+        ${s && html`
+          <div className="bloco">
+            <h4>
+              Bellman-Ford — Caso 1
+              <span className="etiqueta ok">
+                Sem ciclo negativo
+              </span>
+            </h4>
+
+            <p className="sub">
+              Recorte com uma aresta negativa
+              extraída do dataset.
+            </p>
+
+            <div className="infos">
+              <div className="info largo">
+                <span>Aresta utilizada</span>
+                <span>
+                  ${s.aresta_original[0]}
+                  →
+                  ${s.aresta_original[1]}
+                  (peso ${fmtPeso(s.aresta_original[2])})
+                </span>
+              </div>
+
+              <div className="info">
+                <span>Fonte</span>
+                <span>${s.fonte}</span>
+              </div>
+
+              <div className="info">
+                <span>Vértices / arcos</span>
+                <span>${s.vertices} / ${s.arestas}</span>
+              </div>
+
+              <div className="info">
+                <span>Ciclo negativo</span>
+                <span>${s.tem_ciclo_negativo ? "Sim" : "Não"}</span>
+              </div>
+
+              <div className="info">
+                <span>Tempo médio</span>
+                <span>${fmtTempo(s.tempo_medio_s)}</span>
+              </div>
+
+              <div className="info">
+                <span>Memória de pico</span>
+                <span>${fmtMemoria(s.memoria_pico_bytes)}</span>
+              </div>
+
+              ${s.distancias && html`
+                <div className="info largo">
+                  <span>Distâncias obtidas</span>
+                  <span>
+                    ${Object.entries(s.distancias)
+                      .map(([v, d]) =>
+                        v + ": " + (
+                          d === null ? "∞" : d
+                        )
+                      ).join(" · ")}
+                  </span>
+                </div>
+              `}
+            </div>
+          </div>
+        `}
+
+        <!-- BELLMAN-FORD COM CICLO NEGATIVO -->
+        ${c && html`
+          <div className="bloco">
+            <h4>
+              Bellman-Ford — Caso 2
+              <span className="etiqueta erro">
+                Ciclo negativo
+              </span>
+            </h4>
+
+            <p className="sub">
+              Execução sobre o grafo completo
+              a partir da fonte ${c.fonte}.
+            </p>
+
+            <div className="infos">
+              <div className="info">
+                <span>Fonte</span>
+                <span>${c.fonte}</span>
+              </div>
+
+              <div className="info">
+                <span>Vértices / arcos</span>
+                <span>
+                  ${fmtInt(c.vertices)} /
+                  ${fmtInt(c.arestas)}
+                </span>
+              </div>
+
+              <div className="info">
+                <span>Ciclo negativo</span>
+                <span>${c.tem_ciclo_negativo ? "Sim" : "Não"}</span>
+              </div>
+
+              <div className="info">
+                <span>Tempo médio</span>
+                <span>${fmtTempo(c.tempo_medio_s)}</span>
+              </div>
+
+              <div className="info">
+                <span>Memória de pico</span>
+                <span>${fmtMemoria(c.memoria_pico_bytes)}</span>
+              </div>
+
+              ${c.ciclo && html`
+                <div className="info largo">
+                  <span>Ciclo encontrado</span>
+                  <span>${c.ciclo.join(" → ")}</span>
+                </div>
+
+                <div className="info">
+                  <span>Pesos do ciclo</span>
+                  <span>
+                    ${(c.pesos_ciclo || [])
+                      .map(fmtPeso).join(", ")}
+                  </span>
+                </div>
+
+                <div className="info">
+                  <span>Custo do ciclo</span>
+                  <span style=${{color: "var(--erro)"}}>
+                    ${fmtPeso(c.custo_ciclo)}
+                  </span>
+                </div>
+              `}
+            </div>
+
+            ${c.ciclo && html`
+              <div className="linha-botoes">
+                <button
+                  className="botao perigo"
+                  disabled=${rodando}
+                  onClick=${verCiclo}>
+                  Mostrar ciclo negativo no grafo
+                </button>
+              </div>
+            `}
+          </div>
+        `}
+
+        <${TabelaDesempenho} rel=${rel}/>
+
+        <${TabelaEscalabilidade}
+          dados=${rel.escalabilidade || []}
+        />
+
+      </div>
+
+      <${FigurasAlgoritmos}/>
+
+    </div>
+  `;
 }
 
 // ------------------------------------------------------------------ parte 2: AVD (figuras exportadas do notebook)

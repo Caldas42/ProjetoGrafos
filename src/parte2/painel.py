@@ -151,43 +151,79 @@ class PainelParte2:
         }
 
     # ------------------------------------------------------------ resultados ja salvos
+        # [IA] ChatGPT - disponibilizacao dos resultados existentes para o front
     def relatorio(self):
-        """Resumo do parte2_report.json (sem as listas enormes de ordem/pais/arcos)."""
+        """Resultados dos experimentos da Parte 2."""
+
         if self._relatorio is None:
             with open(self.caminho_relatorio, encoding="utf-8") as arquivo:
                 r = json.load(arquivo)
+
             res = r["resultados"]
+
             bfs_linhas = []
+
             for item in res.get("BFS", []):
-                camadas = sorted(((int(n), len(vs)) for n, vs in item["camadas"].items()))
+                camadas = sorted(
+                    (
+                        (int(n), vs)
+                        for n, vs in item["camadas"].items()
+                    ),
+                    key=lambda camada: camada[0]
+                )
+
                 bfs_linhas.append({
                     "fonte": item["fonte"],
                     "vertices_visitados": item["vertices_visitados"],
                     "n_camadas": len(camadas),
-                    "camadas": [qtd for _, qtd in camadas],
+                    "camadas": [len(vs) for _, vs in camadas],
+                    "vertices_por_camada": [
+                        {
+                            "nivel": nivel,
+                            "vertices": vs
+                        }
+                        for nivel, vs in camadas
+                    ],
+                    "ordem": item["ordem"],
                     "tempo_medio_s": item["tempo_medio_s"],
                     "tempos_s": item["tempos_s"],
+                    "memoria_pico_bytes": item["memoria_pico_bytes"]
                 })
-            dfs_linhas = [{
-                "fonte": item["fonte"],
-                "vertices_visitados": item["vertices_visitados"],
-                "classificacao_arcos": item["classificacao_arcos"],
-                "tem_ciclo": item["tem_ciclo"],
-                "tempo_medio_s": item["tempo_medio_s"],
-                "tempos_s": item["tempos_s"],
-            } for item in res.get("DFS", [])]
+
+            dfs_linhas = []
+
+            for item in res.get("DFS", []):
+                dfs_linhas.append({
+                    "fonte": item["fonte"],
+                    "vertices_visitados": item["vertices_visitados"],
+                    "ordem": item["ordem"],
+                    "classificacao_arcos": item["classificacao_arcos"],
+                    "tem_ciclo": item["tem_ciclo"],
+                    "tempo_medio_s": item["tempo_medio_s"],
+                    "tempos_s": item["tempos_s"],
+                    "memoria_pico_bytes": item["memoria_pico_bytes"]
+                })
+
             bf = {}
+
             for nome, caso in res.get("BELLMAN_FORD", {}).items():
-                bf[nome] = {k: v for k, v in caso.items()
-                            if k not in ("distancias", "pais") or len(v) <= 20}
+                bf[nome] = {
+                    k: v
+                    for k, v in caso.items()
+                    if k not in ("distancias", "pais") or len(v) <= 20
+                }
+
             self._relatorio = {
                 "dataset": r.get("dataset"),
                 "vertices": r.get("vertices"),
                 "arestas": r.get("arestas"),
                 "BFS": bfs_linhas,
                 "DFS": dfs_linhas,
+                "DIJKSTRA": res.get("DIJKSTRA"),
                 "BELLMAN_FORD": bf,
+                "escalabilidade": r.get("escalabilidade", [])
             }
+
         return self._relatorio
 
     def figuras(self):
@@ -196,6 +232,46 @@ class PainelParte2:
                  "secao": "explanatoria" if indice in CELULAS_EXPLANATORIA else "exploratoria",
                  "existe": os.path.exists(os.path.join(PASTA_FIGURAS, nome))}
                 for nome, titulo, _trecho, indice in FIGURAS]
+
+    # [IA] ChatGPT - disponibilizacao das figuras de desempenho existentes
+    def figuras_algoritmos(self):
+        figuras = [
+            (
+                "alg_01_comparacao_tempo.png",
+                "Comparação de tempo"
+            ),
+            (
+                "alg_02_comparacao_memoria.png",
+                "Comparação de memória"
+            ),
+            (
+                "alg_03_escalabilidade.png",
+                "Escalabilidade"
+            ),
+            (
+                "alg_04_camadas_bfs.png",
+                "Camadas da BFS"
+            ),
+            (
+                "alg_05_classificacao_dfs.png",
+                "Classificação dos arcos da DFS"
+            ),
+            (
+                "alg_06_comparacao_caminhos.png",
+                "Comparação dos caminhos"
+            )
+        ]
+
+        return [
+            {
+                "arquivo": arquivo,
+                "titulo": titulo,
+                "existe": os.path.exists(
+                    os.path.join(PASTA_FIGURAS, arquivo)
+                )
+            }
+            for arquivo, titulo in figuras
+        ]
 
     # ------------------------------------------------------------ rodar um algoritmo do grupo
     def _executar(self, algoritmo, origem, percentual=100):

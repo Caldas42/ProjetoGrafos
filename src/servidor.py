@@ -173,8 +173,22 @@ def criar_handler(servidor):
             elif caminho.startswith("/vendor/"):
                 self._arquivo(PASTA_VENDOR, caminho[len("/vendor/"):], set(os.listdir(PASTA_VENDOR)))
             elif caminho.startswith("/parte2/figuras/"):
-                nomes = {f["arquivo"] for f in servidor.parte2.figuras() if f["existe"]}
-                self._arquivo(PASTA_FIGURAS, caminho[len("/parte2/figuras/"):], nomes)
+                figuras = (
+                    servidor.parte2.figuras()
+                    + servidor.parte2.figuras_algoritmos()
+                )
+
+                nomes = {
+                    f["arquivo"]
+                    for f in figuras
+                    if f["existe"]
+                }
+
+                self._arquivo(
+                    PASTA_FIGURAS,
+                    caminho[len("/parte2/figuras/"):],
+                    nomes
+                )
             elif caminho == "/api/ping":
                 self._json(200, {"ok": True, "mapas": len(servidor.dados)})
             elif caminho == "/api/parte2/resumo":
@@ -201,6 +215,12 @@ def criar_handler(servidor):
                     self._json(404, {"erro": "out/parte2/parte2_report.json não existe (gere as saídas da Parte 2)"})
             elif caminho == "/api/parte2/figuras":
                 self._json(200, servidor.parte2.figuras())
+            # [IA] ChatGPT - rota das figuras de desempenho
+            elif caminho == "/api/parte2/figuras-algoritmos":
+                self._json(
+                    200,
+                    servidor.parte2.figuras_algoritmos()
+                )
             else:
                 self._json(404, {"erro": "não encontrado"})
 
