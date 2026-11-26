@@ -72,6 +72,10 @@
   .ficha[aria-pressed="true"]{background:var(--acento);border-color:var(--acento);color:var(--sobre-acento);font-weight:600}
   .ficha small{opacity:.7;font-family:var(--mono);font-size:.72rem}
   .bolinha{width:8px;height:8px;border-radius:50%;flex:none}
+  /* objetivo didatico do mapa: uma linha discreta logo abaixo da barra */
+  .objetivo-mapa{flex:none;margin:-.25rem 0 0;padding:0 .85rem;font-size:.76rem;line-height:1.35;color:var(--txt2);
+                 white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .objetivo-mapa b{color:var(--txt);font-weight:600}
   .ficha[aria-pressed="true"] .bolinha{box-shadow:0 0 0 2px rgba(255,255,255,.6)}
 
   /* ---------- grelha principal ---------- */
@@ -252,7 +256,7 @@
     .palco{flex:none;height:65vh}
     .painel-abas{flex:none;height:22rem}
   }
-  @media (max-width:560px){.casca{padding:.5rem}.dica{display:none}}
+  @media (max-width:560px){.casca{padding:.5rem}.dica{display:none}.objetivo-mapa{white-space:normal}}
     .galeria-p1{
       flex:1;
       min-height:0;
@@ -401,6 +405,19 @@ const corCamada = chaves => COR_CAMADA[Math.min((chaves || "").replace("-", "").
 const COR_STATUS = {OK:"var(--ok)", CICLO_NEGATIVO:"var(--erro)", SEM_SOLUCAO:"var(--txt3)", RECUSA:"var(--alerta)"};
 const TXT_STATUS = {OK:"ok", CICLO_NEGATIVO:"ciclo negativo", SEM_SOLUCAO:"sem solução", RECUSA:"recusou"};
 const SETA = {"^":"↑", ">":"→", "v":"↓", "<":"←"};
+// [IA] Claude Code – front/UX: objetivo didatico de cada mapa (so texto; mapas enviados nao tem)
+const OBJETIVO_MAPA = {
+  m01_terreno:     "Demonstrar a diferença entre o caminho com menos passos e o caminho de menor custo.",
+  m02_uma_chave:   "Demonstrar a necessidade do grafo de estados para representar a coleta de uma chave.",
+  m03_tres_chaves: "Demonstrar o crescimento do grafo de estados com múltiplas chaves e portas.",
+  m04_esteiras:    "Demonstrar como as esteiras podem gerar becos e estados-armadilha.",
+  m05_bonus:       "Demonstrar a existência de pesos negativos sem ciclos negativos no grafo de estados.",
+  m06_fonte:       "Demonstrar a existência de um ciclo negativo real causado pela fonte de energia.",
+  m07_impossivel:  "Demonstrar um labirinto sem solução devido à impossibilidade de obter a chave.",
+  m08_grande:      "Demonstrar a escalabilidade do grafo de estados em um labirinto de grandes dimensões.",
+  g01_tres_chaves: "Demonstrar a combinação de chaves, portas, bônus, esteiras e terrenos em um único mapa.",
+  g02_porao:       "Demonstrar a existência de uma região com muitos estados-armadilha em um labirinto que possui solução.",
+};
 const CLASSE = {"#":"p",".":"o","S":"st","G":"go",",":"mu","~":"ag","+":"bo","*":"fo",">":"es","<":"es","^":"es","v":"es"};
 const classeDe = ch => CLASSE[ch] || ("abcd".includes(ch) ? "ch" : "ABCD".includes(ch) ? "po" : "o");
 // custo de ENTRAR na casa (tabela do enunciado); usado so para exibir o custo do percurso da BFS
@@ -939,6 +956,9 @@ function Parte1({tema, setTema, aoVoltar, servidor}){
       <button className="icone" onClick=${() => setTema(t => t === "light" ? "dark" : "light")}
         aria-label="Alternar tema claro/escuro">${tema === "light" ? "☾ escuro" : "☀ claro"}</button>
     </header>
+
+    ${!mapaOriginal.enviado && OBJETIVO_MAPA[nomeMapa] && html`
+    <p className="objetivo-mapa" title=${OBJETIVO_MAPA[nomeMapa]}><b>Objetivo:</b> ${OBJETIVO_MAPA[nomeMapa]}</p>`}
 
     ${carga && html`
     <div className=${"faixa-carga " + carga.tipo} role="status">
