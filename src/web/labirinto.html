@@ -773,6 +773,8 @@ function Parte1({tema, setTema, aoVoltar, servidor}){
   const custos = useMemo(() => custosDe(mapa, algAtual, passosGuia), [mapa, algAtual]);
   const eventos = useMemo(() => eventosDe(mapa, passosGuia), [mapa, algAtual]);
   const idxBonus = useMemo(() => indicesBonus(mapa.grade, mapa.fonte), [mapa]);
+  // [IA] Claude Code – front/UX: casas que nao sao parede (#), contadas direto da grade
+  const casasLivres = useMemo(() => mapa.grade.flat().filter(ch => ch !== "#").length, [mapa]);
   const chavesDoMapa = useMemo(() => [...new Set(mapa.grade.flat().filter(ch => "abcd".includes(ch)))].sort(), [mapa]);
   const nBonus = Object.keys(idxBonus).length;
 
@@ -1064,6 +1066,7 @@ function Parte1({tema, setTema, aoVoltar, servidor}){
             <div className="tile"><span>densidade</span><b>${m.densidade.toFixed(5)}</b></div>
             <div className="tile"><span>camadas</span><b>${Object.keys(mapa.camadas).length}</b></div>
             <div className="tile"><span>estados-armadilha</span><b style=${{color:mapa.armadilhas.length ? "var(--erro)" : null}}>${mapa.armadilhas.length}</b></div>
+            <div className="tile"><span>casas livres</span><b>${casasLivres}</b></div>
             <div className="tile"><span>teto teórico</span><b>${m.teto}</b></div>
             <div className="tile ocupacao"><span>taxa de ocupação (estados ÷ teto)</span><b>${m.teto ? ocup.toFixed(1) + "%" : "—"}</b>
               <div className="medidor"><i style=${{width:Math.min(100, ocup) + "%"}}></i></div></div>
